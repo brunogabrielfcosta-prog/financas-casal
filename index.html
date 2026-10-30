@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bruno & Andressa · Nossas Finanças</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: cabeçalho com contagem regressiva, abas, resumo antes do detalhe; uma coluna no celular */
+:root{
+  --bg:#f5f2e9; --surface:#fbf9f3; --ink:#23281b; --muted:#6c6f5c; --line:#e2ddce;
+  --accent:#4b5a2c; --accent-soft:#e7e9d7; --gold:#a88b55; --gold-soft:#f1e9d7;
+  --ok:#4f7a35; --warn:#a86a12; --bad:#ad3b32;
+  --display:"Instrument Serif", Georgia, "Times New Roman", serif;
+  --body:"Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:12px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#171a12; --surface:#20241a; --ink:#ece9de; --muted:#a3a690; --line:#33382a;
+    --accent:#a9bb7c; --accent-soft:#2b3220; --gold:#d2b47e; --gold-soft:#332c1d;
+    --ok:#9cc27a; --warn:#e0a54a; --bad:#e57c72; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#171a12; --surface:#20241a; --ink:#ece9de; --muted:#a3a690; --line:#33382a;
+  --accent:#a9bb7c; --accent-soft:#2b3220; --gold:#d2b47e; --gold-soft:#332c1d;
+  --ok:#9cc27a; --warn:#e0a54a; --bad:#e57c72; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1040px;margin:0 auto;padding:0 18px 64px}
+h1,h2,h3{text-wrap:balance;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{padding:28px 0 18px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
+.names{font-family:var(--display);font-size:44px;line-height:1;letter-spacing:-.01em}
+.names em{color:var(--gold);font-style:italic}
+.sub{color:var(--muted);margin-top:6px}
+.events{display:flex;flex-wrap:wrap;gap:10px}
+.event{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;min-width:150px}
+.event b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.event span{font-family:var(--display);font-size:24px;line-height:1.15}
+.event small{display:block;color:var(--muted);font-size:12.5px}
+
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:22px;overflow-x:auto}
+nav.tabs a{padding:10px 14px;color:var(--muted);text-decoration:none;font-weight:600;border-bottom:2px solid transparent;white-space:nowrap}
+nav.tabs a[aria-current="page"]{color:var(--ink);border-color:var(--accent)}
+
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.tile b{display:block;font-size:12.5px;color:var(--muted);font-weight:600}
+.tile .v{font-size:24px;font-weight:700;margin-top:2px;letter-spacing:-.01em}
+.tile small{color:var(--muted);font-size:12.5px}
+.tile.hl{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.tile.hl b,.tile.hl small{color:inherit;opacity:.85}
+
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;display:flex}
+.bar i{display:block;height:100%;background:var(--accent)}
+.bar i.g{background:var(--gold)}
+.split{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:6px;gap:8px;flex-wrap:wrap}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+
+.section-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:28px 0 12px;flex-wrap:wrap}
+.section-h h2{font-family:var(--display);font-weight:400;font-size:28px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+
+.metas{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.meta{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px}
+.meta-h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.meta-h h3{font-size:17px;font-weight:700}
+.meta-h small{color:var(--muted);display:block;font-size:13px}
+.meta .big{font-size:22px;font-weight:700}
+.meta .of{color:var(--muted);font-weight:500;font-size:14px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:13.5px}
+.kv div{display:flex;flex-direction:column}
+.kv span{color:var(--muted);font-size:12px}
+.kv strong{font-weight:600}
+.meta-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.pill.gold{background:var(--gold-soft);color:var(--gold)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.pill.ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.pill.mute{background:var(--line);color:var(--muted)}
+
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 13px;font-weight:600;cursor:pointer;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.small{padding:4px 10px;font-size:13px}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--ink)}
+.btn.danger{color:var(--bad)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+.tablebox{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto}
+.month-row td{background:var(--bg);font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:6px 10px}
+.in{color:var(--ok);font-weight:700}
+.out{color:var(--bad);font-weight:700}
+.spent{color:var(--warn);font-weight:700}
+
+.room{margin-bottom:16px}
+.room h3{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 8px;display:flex;justify-content:space-between}
+.item{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .nm{font-weight:600;cursor:pointer}
+.item .nm:hover{text-decoration:underline}
+.item .meta-line{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
+.item.done .nm{color:var(--muted);text-decoration:line-through}
+.item .price{text-align:right;min-width:96px}
+.item .price small{display:block;color:var(--muted);font-size:12px}
+select.status{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 8px;font-size:13px;font-weight:600}
+
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:0;width:min(460px,calc(100% - 24px))}
+dialog::backdrop{background:rgba(10,15,12,.45)}
+dialog form{padding:20px;display:flex;flex-direction:column;gap:12px}
+dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:13px;font-weight:600;color:var(--muted)}
+.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:9px 11px}
+.field .hint{font-size:12.5px;color:var(--muted)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg label{flex:1;text-align:center;padding:8px 6px;cursor:pointer;font-weight:600;font-size:13.5px;color:var(--muted)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--accent);color:var(--bg)}
+.dlg-actions{display:flex;justify-content:space-between;gap:8px;margin-top:4px}
+.dlg-actions .right{display:flex;gap:8px;margin-left:auto}
+
+.notice{background:var(--gold-soft);color:var(--ink);border-radius:var(--r);padding:12px 14px;font-size:14px;margin-bottom:16px}
+.empty{color:var(--muted);text-align:center;padding:26px 10px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100% - 32px);z-index:10}
+.toast.show{opacity:1}
+.view[hidden]{display:none}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:12px}
+.toolbar select{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:6px 10px}
+
+.login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}
+.login[hidden]{display:none}
+.login-box{width:min(380px,100%);display:flex;flex-direction:column;gap:14px}
+.login-box .field input{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:11px 12px;font-size:16px}
+.login-err{color:var(--bad);font-size:14px;margin:0;min-height:1.2em}
+@media (max-width:760px){
+  .tiles{grid-template-columns:1fr 1fr}
+  .names{font-size:36px}
+}
+@media (max-width:420px){
+  .wrap{padding:0 16px 56px}
+  .tile .v{font-size:20px}
+  .item{grid-template-columns:1fr auto}
+  .item .stat{grid-column:1 / -1}
+  .row2{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1 class="names">Bruno <em>&amp;</em> Andressa</h1>
+      <div class="sub">O que já juntamos, o que falta e a casa que estamos montando</div>
+    </div>
+    <div class="events" id="events"></div>
+  </header>
+
+  <nav class="tabs" aria-label="Seções">
+    <a href="#resumo" data-tab="resumo">Resumo</a>
+    <a href="#movimentacoes" data-tab="movimentacoes">Movimentações</a>
+    <a href="#casa" data-tab="casa">Casa nova</a>
+    <a href="#ajustes" data-tab="ajustes">Datas e metas</a>
+  </nav>
+
+  <div id="notice"></div>
+
+  <!-- RESUMO -->
+  <section class="view" id="v-resumo">
+    <div class="tiles" id="tiles"></div>
+    <div class="panel" id="overall"></div>
+    <div class="section-h">
+      <h2>Nossas metas</h2>
+      <button class="btn primary" data-act="new-mov">+ Registrar dinheiro</button>
+    </div>
+    <div class="metas" id="metas"></div>
+  </section>
+
+  <!-- MOVIMENTAÇÕES -->
+  <section class="view" id="v-movimentacoes" hidden>
+    <div class="toolbar">
+      <div class="chips" id="mov-filter-quem"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select id="mov-filter-meta" aria-label="Filtrar por meta"></select>
+        <button class="btn primary" data-act="new-mov">+ Registrar</button>
+      </div>
+    </div>
+    <div class="tablebox" id="movs"></div>
+  </section>
+
+  <!-- CASA -->
+  <section class="view" id="v-casa" hidden>
+    <div class="tiles" id="casa-tiles"></div>
+    <div class="toolbar">
+      <div class="chips" id="casa-filter"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" data-act="copy-cha">Copiar lista do chá</button>
+        <button class="btn primary" data-act="new-item">+ Item</button>
+      </div>
+    </div>
+    <div id="casa-list"></div>
+  </section>
+
+  <!-- AJUSTES -->
+  <section class="view" id="v-ajustes" hidden>
+    <div class="section-h" style="margin-top:0"><h2>Datas</h2></div>
+    <form class="panel" id="dates-form">
+      <div class="row2">
+        <div class="field"><label for="d-cha">Chá de panela</label><input type="date" id="d-cha" name="dataCha"><span class="hint">Deixe vazio se ainda não tem dia</span></div>
+        <div class="field"><label for="d-cas">Jantar do casamento</label><input type="date" id="d-cas" name="dataCasamento"></div>
+        <div class="field"><label for="d-mud">Mudança pro apê</label><input type="date" id="d-mud" name="dataMudanca"></div>
+      </div>
+      <div style="margin-top:12px"><button class="btn primary" type="submit">Salvar datas</button></div>
+    </form>
+    <div class="section-h"><h2>Metas</h2><button class="btn primary" data-act="new-meta">+ Nova meta</button></div>
+    <div class="tablebox" id="metas-admin"></div>
+    <div class="section-h"><h2>Acesso</h2></div>
+    <form class="panel" id="pw-form">
+      <div class="row2">
+        <div class="field"><label for="pw1">Nova senha</label><input id="pw1" type="password" autocomplete="new-password" minlength="8" required><span class="hint">Mínimo de 8 caracteres. Vale pra vocês dois.</span></div>
+        <div class="field"><label for="pw2">Repita a nova senha</label><input id="pw2" type="password" autocomplete="new-password" minlength="8" required></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="submit">Trocar senha</button><button class="btn" type="button" data-act="logout">Sair deste aparelho</button></div>
+    </form>
+  </section>
+</div>
+
+<div id="login" class="login" hidden>
+  <form id="login-form" class="login-box">
+    <h1 class="names">Bruno <em>&amp;</em> Andressa</h1>
+    <p class="sub">Digite a senha da família pra entrar.</p>
+    <div class="field"><label for="l-senha">Senha</label><input id="l-senha" type="password" autocomplete="current-password" required></div>
+    <p id="login-err" class="login-err" role="alert"></p>
+    <button class="btn primary" type="submit" id="login-btn">Entrar</button>
+  </form>
+</div>
+<dialog id="dlg"><form id="dlg-form" method="dialog"></form></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(() => {
+"use strict";
+const S = { config:{}, metas:[], movs:[], itens:[], loaded:{config:false,metas:false,movs:false,itens:false} };
+const SB_URL="https://qlyezqrdwogicoasmkbn.supabase.co", SB_KEY="sb_publishable_cD-1wZ_4qPe8vHrbCLbFmQ_SFTYSHRu", LOGIN_EMAIL="familia@brunoeandressa.com";
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+let db = null, canWrite = true, loadErr = "";
+const UI = { quem:"Todos", meta:"", casa:"falta" };
+const PESSOAS = ["Bruno","Andressa","Juntos"];
+const CORES = {Bruno:"var(--accent)", Andressa:"var(--gold)", Juntos:"var(--muted)"};
+const COMODOS = ["Cozinha","Lavanderia","Quarto","Sala","Banheiro","Outros"];
+const MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const brl = v => (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const brl0 = v => (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
+function parseMoney(s){
+  if (s == null) return NaN;
+  s = String(s).replace(/[R$\s]/g,"");
+  if (!s) return NaN;
+  if (s.includes(",")) s = s.replace(/\./g,"").replace(",",".");
+  return Number(s);
+}
+const moneyInput = v => (v || v === 0) && v !== "" ? String(Number(v).toFixed(2)).replace(".",",") : "";
+const today = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+function fmtMes(ym){ if(!ym) return ""; const [y,m]=ym.split("-").map(Number); return MESES[m-1]+" de "+y; }
+function fmtData(d){ if(!d) return ""; const [y,m,dd]=d.split("-"); return dd+"/"+m+"/"+y; }
+function monthsUntil(ym){
+  if(!ym) return null;
+  const [y,m]=ym.split("-").map(Number); const n=new Date();
+  return (y*12+m) - (n.getFullYear()*12+n.getMonth()+1);
+}
+function daysUntil(d){
+  if(!d) return null;
+  const [y,m,dd]=d.split("-").map(Number);
+  const t=new Date(y,m-1,dd), n=new Date(); n.setHours(0,0,0,0);
+  return Math.round((t-n)/86400000);
+}
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2600); }
+function errMsg(e){
+  const c = e && e.code;
+  if (c==="42501" || c==="PGRST301") return "Sua sessão expirou. Entre de novo com a senha.";
+  return "Não deu pra salvar agora. Tente de novo em alguns segundos.";
+}
+const strip = o => { const r = {...o}; delete r.id; return r; };
+
+/* ---------- Cálculos ---------- */
+function casaMetaId(){ const m=S.metas.find(m=>m.auto); return m ? m.id : null; }
+function casaAlvo(metaId){
+  let t=0;
+  for(const it of S.itens){
+    if(it.status==="falta") t += Number(it.estimado)||0;
+    else if(it.status==="comprado" && it.pagoCom===metaId) t += Number(it.pago)||0;
+  }
+  return t;
+}
+function metaPrazo(m){
+  if (m.prazo) return m.prazo;
+  return null;
+}
+function stats(m){
+  const ms = S.movs.filter(x=>x.metaId===m.id);
+  let dep=0, ret=0, gas=0; const por={Bruno:0,Andressa:0,Juntos:0};
+  for(const x of ms){
+    const v=Number(x.valor)||0;
+    if(x.tipo==="deposito"){ dep+=v; por[x.quem in por ? x.quem : "Juntos"]+=v; }
+    else if(x.tipo==="retirada") ret+=v;
+    else if(x.tipo==="gasto") gas+=v;
+  }
+  const alvo = m.auto ? casaAlvo(m.id) : (Number(m.alvo)||0);
+  const juntado = dep-ret, saldo = juntado-gas;
+  const falta = Math.max(0, alvo-juntado);
+  const pct = alvo>0 ? Math.min(1, Math.max(0,juntado)/alvo) : 0;
+  const prazo = metaPrazo(m);
+  const mu = monthsUntil(prazo);
+  const meses = mu==null ? null : Math.max(mu,0);
+  const porMes = falta<=0 ? 0 : (meses==null ? null : falta/Math.max(meses,1));
+  return {dep,ret,gas,por,alvo,juntado,saldo,falta,pct,prazo,meses,porMes};
+}
+
+/* ---------- Render ---------- */
+function renderEvents(){
+  const c=S.config, ev=[];
+  const mCha = S.metas.find(m=>m.id==="cha"), mCas = S.metas.find(m=>m.id==="casamento");
+  const add=(label,date,fallbackYm)=>{
+    if(date){ const d=daysUntil(date); ev.push(`<div class="event"><b>${label}</b><span class="num">${d>0? d+" dias" : d===0 ? "É hoje" : "Já foi"}</span><small>${fmtData(date)}</small></div>`); }
+    else if(fallbackYm){ const mu=monthsUntil(fallbackYm); ev.push(`<div class="event"><b>${label}</b><span>${fmtMes(fallbackYm).replace(/^./,ch=>ch.toUpperCase())}</span><small>${mu>0? "daqui a "+mu+(mu===1?" mês":" meses") : "este mês"}</small></div>`); }
+  };
+  add("Mudança", c.dataMudanca, null);
+  add("Chá de panela", c.dataCha, mCha && mCha.prazo);
+  add("Casamento", c.dataCasamento, mCas && mCas.prazo);
+  $("#events").innerHTML = ev.join("");
+}
+
+function renderResumo(){
+  let alvo=0,junt=0,saldo=0,falta=0,porMes=0,semAlvo=0; const por={Bruno:0,Andressa:0,Juntos:0};
+  const list = S.metas.map(m=>({m,s:stats(m)}));
+  for(const {s} of list){ alvo+=s.alvo; junt+=s.juntado; saldo+=s.saldo; falta+=s.falta; porMes+= s.porMes||0; for(const k in por) por[k]+=s.por[k]; if(s.alvo<=0) semAlvo++; }
+  $("#tiles").innerHTML = `
+    <div class="tile hl"><b>Já juntamos</b><div class="v num">${brl(junt)}</div><small>de ${brl0(alvo)} no total</small></div>
+    <div class="tile"><b>Falta juntar</b><div class="v num">${brl(falta)}</div><small>${alvo>0? Math.round(junt/alvo*100)+"% do caminho" : "defina os valores das metas"}</small></div>
+    <div class="tile"><b>Guardar por mês</b><div class="v num">${brl0(porMes)}</div><small>pra bater tudo no prazo</small></div>
+    <div class="tile"><b>Guardado hoje</b><div class="v num">${brl(saldo)}</div><small>descontando o que já foi gasto</small></div>`;
+  const totDep = por.Bruno+por.Andressa+por.Juntos;
+  const w = k => totDep>0 ? (por[k]/totDep*100).toFixed(1) : 0;
+  $("#overall").innerHTML = `
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px"><strong>Quem guardou o quê</strong><span class="num" style="color:var(--muted)">${brl(totDep)} depositados</span></div>
+    <div class="bar">${totDep>0? `<i style="width:${w("Bruno")}%"></i><i class="g" style="width:${w("Andressa")}%"></i><i style="width:${w("Juntos")}%;background:var(--muted)"></i>` : ""}</div>
+    <div class="split num">${PESSOAS.map(p=>`<span><span class="dot" style="background:${CORES[p]}"></span>${p} ${brl(por[p])}</span>`).join("")}</div>
+    ${semAlvo? `<div class="split" style="margin-top:10px"><span class="pill warn">${semAlvo} ${semAlvo>1?"metas sem valor definido":"meta sem valor definido"}</span><a href="#ajustes" style="color:var(--accent);font-weight:600">Definir valores</a></div>`:""}`;
+
+  $("#metas").innerHTML = list.length ? list.map(({m,s})=>{
+    const status = s.alvo<=0 ? `<span class="pill warn">Sem valor</span>` : s.falta<=0 ? `<span class="pill ok">Meta batida</span>` : s.meses!==null && s.meses<=0 ? `<span class="pill warn">Prazo chegou</span>` : `<span class="pill">${Math.round(s.pct*100)}%</span>`;
+    const prazoTxt = s.prazo ? fmtMes(s.prazo) : "sem prazo";
+    const alvoTxt = m.auto ? "soma da lista da casa" : "valor definido";
+    return `<article class="meta">
+      <div class="meta-h"><div><h3>${esc(m.nome)}</h3><small>${esc(prazoTxt)}${m.auto?" · "+alvoTxt:""}</small></div>${status}</div>
+      <div><span class="big num">${brl(s.juntado)}</span> <span class="of num">de ${s.alvo>0?brl(s.alvo):"—"}</span></div>
+      <div class="bar"><i style="width:${(s.pct*100).toFixed(1)}%"></i></div>
+      <div class="kv num">
+        <div><span>Falta</span><strong>${s.alvo>0?brl(s.falta):"—"}</strong></div>
+        <div><span>Por mês</span><strong>${s.alvo<=0? "—" : s.porMes==null? "defina o prazo" : brl(s.porMes)}${s.meses>0&&s.falta>0?` <span style="color:var(--muted);font-weight:400">· ${s.meses}x</span>`:""}</strong></div>
+        <div><span>Já gasto</span><strong>${brl(s.gas)}</strong></div>
+        <div><span>Guardado agora</span><strong>${brl(s.saldo)}</strong></div>
+      </div>
+      <div class="meta-actions">
+        <button class="btn small primary" data-act="new-mov" data-meta="${esc(m.id)}">+ Guardar</button>
+        <button class="btn small" data-act="new-mov" data-meta="${esc(m.id)}" data-tipo="gasto">Registrar gasto</button>
+        ${m.auto? `<a class="btn small ghost" href="#casa" style="text-decoration:none">Ver lista</a>` : `<button class="btn small ghost" data-act="edit-meta" data-id="${esc(m.id)}">Editar</button>`}
+      </div>
+    </article>`;
+  }).join("") : `<div class="panel empty">Nenhuma meta ainda. <a href="#ajustes">Criar uma meta</a></div>`;
+}
+
+function metaNome(id){ const m=S.metas.find(m=>m.id===id); return m? m.nome : "Sem meta"; }
+
+function renderMovs(){
+  $("#mov-filter-quem").innerHTML = ["Todos",...PESSOAS].map(p=>`<button class="chip" aria-pressed="${UI.quem===p}" data-quem="${p}">${p}</button>`).join("");
+  const sel=$("#mov-filter-meta");
+  sel.innerHTML = `<option value="">Todas as metas</option>`+S.metas.map(m=>`<option value="${esc(m.id)}" ${UI.meta===m.id?"selected":""}>${esc(m.nome)}</option>`).join("");
+  let rows = S.movs.filter(x => (UI.quem==="Todos"||x.quem===UI.quem) && (!UI.meta||x.metaId===UI.meta));
+  rows.sort((a,b)=> (b.data||"").localeCompare(a.data||"") || (b.criado||0)-(a.criado||0));
+  if(!rows.length){ $("#movs").innerHTML=`<div class="empty">Nenhuma movimentação ${UI.quem!=="Todos"||UI.meta?"com esse filtro":"ainda"}. Toque em <b>+ Registrar</b> quando guardar dinheiro.</div>`; return; }
+  let html=`<table><thead><tr><th>Data</th><th>O quê</th><th>Meta</th><th>Quem</th><th class="r">Valor</th><th></th></tr></thead><tbody>`;
+  let lastM="";
+  for(const x of rows){
+    const ym=(x.data||"").slice(0,7);
+    if(ym!==lastM){
+      const tot = rows.filter(r=>(r.data||"").startsWith(ym) && r.tipo==="deposito").reduce((a,r)=>a+(Number(r.valor)||0),0);
+      html+=`<tr class="month-row"><td colspan="6">${esc(fmtMes(ym))} · guardado ${brl(tot)}</td></tr>`; lastM=ym;
+    }
+    const tipoTxt = x.tipo==="deposito"?"Guardou":x.tipo==="retirada"?"Retirou":"Gastou";
+    const cls = x.tipo==="deposito"?"in":x.tipo==="retirada"?"out":"spent";
+    const sign = x.tipo==="deposito"?"+":"−";
+    html+=`<tr><td class="num">${fmtData(x.data)}</td><td>${tipoTxt}${x.obs?` <span style="color:var(--muted)">· ${esc(x.obs)}</span>`:""}</td><td>${esc(metaNome(x.metaId))}</td><td><span class="dot" style="background:${CORES[x.quem]||"var(--muted)"}"></span>${esc(x.quem||"")}</td><td class="r num ${cls}">${sign} ${brl(x.valor)}</td>
+      <td class="r">${x.itemId? `<span class="pill mute" title="Altere pela lista da casa">compra</span>` : `<button class="btn small ghost" data-act="edit-mov" data-id="${esc(x.id)}">Editar</button>`}</td></tr>`;
+  }
+  $("#movs").innerHTML = html+`</tbody></table>`;
+}
+
+function renderCasa(){
+  const its=S.itens; let est=0, comp=0, falta=0, semPreco=0, nComp=0, nGanho=0, nFalta=0, nCha=0;
+  for(const it of its){
+    if(it.status==="falta"){ nFalta++; falta+=Number(it.estimado)||0; if(!(Number(it.estimado)>0)) semPreco++; if(it.cha) nCha++; }
+    if(it.status==="comprado"){ nComp++; comp+=Number(it.pago)||0; }
+    if(it.status==="ganhado") nGanho++;
+  }
+  const cm=casaMetaId(); const s = cm ? stats(S.metas.find(m=>m.id===cm)) : null;
+  $("#casa-tiles").innerHTML = `
+    <div class="tile hl"><b>Falta comprar</b><div class="v num">${brl(falta)}</div><small>${nFalta} ${nFalta===1?"item":"itens"}${semPreco?` · ${semPreco} sem preço`:""}</small></div>
+    <div class="tile"><b>Já compramos</b><div class="v num">${brl(comp)}</div><small>${nComp} ${nComp===1?"item":"itens"}</small></div>
+    <div class="tile"><b>Ganhamos</b><div class="v num">${nGanho}</div><small>${nGanho===1?"presente":"presentes"}</small></div>
+    <div class="tile"><b>Guardado pra casa</b><div class="v num">${s?brl(s.saldo):"—"}</div><small>${s? (s.saldo>=falta && falta>0 ? "dá pra comprar tudo" : s.falta>0 ? "faltam "+brl0(s.falta) : "tudo coberto") : "crie a meta da casa"}</small></div>`;
+  const F=[["falta","Falta comprar"],["comprado","Comprados"],["ganhado","Ganhamos"],["cha","Lista do chá"],["todos","Todos"]];
+  $("#casa-filter").innerHTML = F.map(([k,l])=>`<button class="chip" aria-pressed="${UI.casa===k}" data-casa="${k}">${l}</button>`).join("");
+  const vis = its.filter(it => UI.casa==="todos" || (UI.casa==="cha" ? it.cha && it.status==="falta" : it.status===UI.casa));
+  if(!vis.length){ $("#casa-list").innerHTML=`<div class="panel empty">${UI.casa==="falta"&&its.length?"Tudo comprado ou ganhado. Parabéns!":"Nada por aqui."} <button class="btn small" data-act="new-item">+ Adicionar item</button></div>`; return; }
+  const grupos={}; for(const it of vis){ const c=COMODOS.includes(it.comodo)?it.comodo:"Outros"; (grupos[c]=grupos[c]||[]).push(it); }
+  const prio={essencial:0,depois:1};
+  $("#casa-list").innerHTML = COMODOS.filter(c=>grupos[c]).map(c=>{
+    const g=grupos[c].sort((a,b)=>(prio[a.prioridade]??1)-(prio[b.prioridade]??1) || (a.nome||"").localeCompare(b.nome||""));
+    const tot=g.filter(i=>i.status==="falta").reduce((a,i)=>a+(Number(i.estimado)||0),0);
+    return `<div class="room"><h3><span>${c}</span><span class="num">${tot?brl(tot):""}</span></h3><div class="panel" style="padding:0">${g.map(it=>{
+      const done = it.status!=="falta";
+      const priceMain = it.status==="comprado" ? brl(it.pago) : it.status==="ganhado" ? "presente" : (Number(it.estimado)>0? brl(it.estimado) : `<span class="pill warn">sem preço</span>`);
+      const priceSub = it.status==="comprado" ? (it.pagoCom==="fora"?"pago por fora":"pago da reserva") : it.status==="falta" && Number(it.estimado)>0 ? "estimado" : "";
+      return `<div class="item ${done?"done":""}">
+        <div><div class="nm" data-act="edit-item" data-id="${esc(it.id)}" tabindex="0" role="button">${esc(it.nome)}</div>
+          <div class="meta-line">${it.prioridade==="essencial"?`<span class="pill">Essencial</span>`:`<span class="pill mute">Pode esperar</span>`}${it.cha?`<span class="pill gold">Lista do chá</span>`:""}${it.loja?`<span class="pill mute">${esc(it.loja)}</span>`:""}</div></div>
+        <div class="price num">${priceMain}${priceSub?`<small>${priceSub}</small>`:""}</div>
+        <div class="stat"><select class="status" data-item-status="${esc(it.id)}" aria-label="Status de ${esc(it.nome)}" ${canWrite?"":"disabled"}>
+          <option value="falta" ${it.status==="falta"?"selected":""}>Falta comprar</option>
+          <option value="comprado" ${it.status==="comprado"?"selected":""}>Comprado</option>
+          <option value="ganhado" ${it.status==="ganhado"?"selected":""}>Ganhamos</option>
+        </select></div></div>`;}).join("")}</div></div>`;
+  }).join("");
+}
+
+function renderAjustes(){
+  const c=S.config;
+  if(document.activeElement?.closest?.("#dates-form")==null){
+    $("#d-cha").value=c.dataCha||""; $("#d-cas").value=c.dataCasamento||""; $("#d-mud").value=c.dataMudanca||"";
+  }
+  $("#metas-admin").innerHTML = S.metas.length ? `<table><thead><tr><th>Meta</th><th>Valor</th><th>Prazo</th><th></th></tr></thead><tbody>${S.metas.map(m=>`<tr><td><strong>${esc(m.nome)}</strong></td><td class="num">${m.auto?"soma da lista da casa":(Number(m.alvo)>0?brl(m.alvo):`<span class="pill warn">definir</span>`)}</td><td>${m.prazo?esc(fmtMes(m.prazo)):`<span class="pill mute">sem prazo</span>`}</td><td class="r"><button class="btn small" data-act="edit-meta" data-id="${esc(m.id)}">Editar</button></td></tr>`).join("")}</tbody></table>` : `<div class="empty">Nenhuma meta.</div>`;
+}
+
+function renderNotice(){
+  let n="";
+  if(loadErr) n=`<div class="notice">${esc(loadErr)}</div>`;
+  $("#notice").innerHTML=n;
+}
+
+function renderAll(){
+  S.metas.sort((a,b)=>(a.ordem??99)-(b.ordem??99));
+  renderNotice(); renderEvents(); renderResumo(); renderMovs(); renderCasa(); renderAjustes();
+  document.querySelectorAll("[data-act^='new'],#dates-form button").forEach(b=>b.disabled=!canWrite || !db);
+}
+
+/* ---------- Rotas ---------- */
+const TABS=["resumo","movimentacoes","casa","ajustes"];
+function route(){
+  const h=(location.hash||"").slice(1); const t=TABS.includes(h)?h:"resumo";
+  TABS.forEach(k=>{ $("#v-"+k).hidden = k!==t; });
+  document.querySelectorAll("nav.tabs a").forEach(a=>{ if(a.dataset.tab===t) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+}
+window.addEventListener("hashchange", route);
+
+/* ---------- Escrita ---------- */
+async function put(col,id,data){
+  if(!db){ toast("Entre com a senha pra salvar."); return false; }
+  const row={...data, id}; delete row.criadoEm;
+  const {error}=await sb.from(col).upsert(row);
+  if(error){ console.error(error); toast(errMsg(error)); return false; }
+  await refresh(col); return true;
+}
+async function del(col,id){
+  if(!db) return false;
+  const {error}=await sb.from(col).delete().eq("id",id);
+  if(error){ console.error(error); toast(errMsg(error)); return false; }
+  await refresh(col); return true;
+}
+const newId = () => (crypto.randomUUID ? crypto.randomUUID() : "x"+Date.now()+Math.random().toString(36).slice(2));
+function lastQuem(){ try{ return localStorage.getItem("quem")||"Bruno"; }catch(e){ return "Bruno"; } }
+function setQuem(q){ try{ localStorage.setItem("quem",q); }catch(e){} }
+
+/* ---------- Diálogos ---------- */
+const dlg=$("#dlg"), form=$("#dlg-form");
+let onSubmit=null, onCancel=null;
+function openDlg(html, submit, cancel){
+  form.innerHTML=html; onSubmit=submit; onCancel=cancel||null;
+  dlg.showModal();
+  const f=form.querySelector("input:not([type=radio]):not([type=hidden]),select"); if(f) setTimeout(()=>f.focus(),30);
+}
+form.addEventListener("submit", async e=>{
+  e.preventDefault();
+  const btn = e.submitter; if(btn && btn.value==="cancel"){ closeDlg(true); return; }
+  const fd=new FormData(form); const ok = onSubmit ? await onSubmit(fd, btn && btn.value) : true;
+  if(ok!==false) closeDlg(false);
+});
+function closeDlg(cancelled){ dlg.close(); if(cancelled && onCancel) onCancel(); onSubmit=null; onCancel=null; }
+dlg.addEventListener("cancel", e=>{ e.preventDefault(); closeDlg(true); });
+const metaOptions = (sel, extra="") => S.metas.map(m=>`<option value="${esc(m.id)}" ${sel===m.id?"selected":""}>${esc(m.nome)}</option>`).join("")+extra;
+const seg = (name, opts, sel) => `<div class="seg">${opts.map(([v,l])=>`<label><input type="radio" name="${name}" value="${v}" ${sel===v?"checked":""}>${l}</label>`).join("")}</div>`;
+
+function movDialog(mov, preset={}){
+  const x = mov || {tipo:preset.tipo||"deposito", metaId:preset.meta||(S.metas[0]&&S.metas[0].id), quem:lastQuem(), data:today(), valor:"", obs:""};
+  openDlg(`<h3>${mov?"Editar registro":"Registrar dinheiro"}</h3>
+    ${seg("tipo",[["deposito","Guardar"],["retirada","Retirar"],["gasto","Gasto"]],x.tipo)}
+    <div class="row2">
+      <div class="field"><label for="f-valor">Valor (R$)</label><input id="f-valor" name="valor" inputmode="decimal" placeholder="0,00" value="${esc(moneyInput(x.valor))}" required></div>
+      <div class="field"><label for="f-data">Data</label><input id="f-data" type="date" name="data" value="${esc(x.data)}" required></div>
+    </div>
+    <div class="field"><label for="f-meta">Pra qual meta</label><select id="f-meta" name="metaId">${metaOptions(x.metaId)}</select></div>
+    <div class="field"><label>Quem</label>${seg("quem",PESSOAS.map(p=>[p,p]),x.quem)}</div>
+    <div class="field"><label for="f-obs">Observação</label><input id="f-obs" name="obs" maxlength="120" value="${esc(x.obs)}" placeholder="opcional"></div>
+    <div class="field hint">Gasto é quando o dinheiro guardado foi usado na própria meta, como pagar o restaurante. Retirar é tirar da reserva pra outra coisa.</div>
+    <div class="dlg-actions">${mov?`<button class="btn danger" value="delete">Apagar</button>`:""}<div class="right"><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="ok">Salvar</button></div></div>`,
+  async (fd, action)=>{
+    if(action==="delete"){ return await del("movs", mov.id) && (toast("Registro apagado"), true); }
+    const valor=parseMoney(fd.get("valor"));
+    if(!(valor>0)){ toast("Digite um valor maior que zero."); return false; }
+    const data={tipo:fd.get("tipo"), valor:Math.round(valor*100)/100, metaId:fd.get("metaId"), quem:fd.get("quem")||"Juntos", data:fd.get("data")||today(), obs:(fd.get("obs")||"").trim(), criado: mov?.criado || Date.now()};
+    setQuem(data.quem);
+    const ok=await put("movs", mov?mov.id:newId("movs"), data);
+    if(ok) toast(data.tipo==="deposito"?"Guardado! "+brl(data.valor):"Registrado");
+    return ok;
+  });
+}
+
+function metaDialog(m){
+  const x = m || {nome:"", alvo:"", prazo:"", auto:false};
+  openDlg(`<h3>${m?"Editar meta":"Nova meta"}</h3>
+    <div class="field"><label for="m-nome">Nome</label><input id="m-nome" name="nome" value="${esc(x.nome)}" required maxlength="60"></div>
+    ${x.auto?`<div class="field hint">O valor dessa meta é a soma dos itens da lista da casa que ainda faltam comprar mais o que já foi comprado com o dinheiro guardado.</div>`:
+    `<div class="field"><label for="m-alvo">Quanto precisamos (R$)</label><input id="m-alvo" name="alvo" inputmode="decimal" placeholder="0,00" value="${esc(moneyInput(x.alvo))}"></div>`}
+    <div class="field"><label for="m-prazo">Até quando</label><input id="m-prazo" type="month" name="prazo" value="${esc(x.prazo||"")}" placeholder="aaaa-mm"><span class="hint">Usado pra calcular quanto guardar por mês</span></div>
+    <div class="dlg-actions">${m && !x.auto?`<button class="btn danger" value="delete">Apagar meta</button>`:""}<div class="right"><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="ok">Salvar</button></div></div>`,
+  async (fd, action)=>{
+    if(action==="delete"){
+      const n=S.movs.filter(v=>v.metaId===m.id).length;
+      if(n){ toast("Essa meta tem "+n+" registros. Apague ou mude eles antes."); return false; }
+      return await del("metas", m.id);
+    }
+    const alvo = x.auto ? null : parseMoney(fd.get("alvo"));
+    const data={...strip(x), nome:(fd.get("nome")||"").trim(), prazo:fd.get("prazo")||null, auto:!!x.auto, ordem: x.ordem ?? (S.metas.length+1)};
+    if(!x.auto) data.alvo = isNaN(alvo)?null:Math.round(alvo*100)/100;
+    return await put("metas", m?m.id:newId("metas"), data) && (toast("Meta salva"), true);
+  });
+}
+
+function itemDialog(it){
+  const x = it || {nome:"", comodo:"Cozinha", estimado:"", prioridade:"essencial", cha:false, loja:"", status:"falta"};
+  openDlg(`<h3>${it?"Editar item":"Novo item"}</h3>
+    <div class="field"><label for="i-nome">Item</label><input id="i-nome" name="nome" value="${esc(x.nome)}" required maxlength="60" placeholder="ex: Geladeira frost free"></div>
+    <div class="row2">
+      <div class="field"><label for="i-comodo">Cômodo</label><select id="i-comodo" name="comodo">${COMODOS.map(c=>`<option ${x.comodo===c?"selected":""}>${c}</option>`).join("")}</select></div>
+      <div class="field"><label for="i-est">Preço estimado (R$)</label><input id="i-est" name="estimado" inputmode="decimal" placeholder="0,00" value="${esc(moneyInput(x.estimado))}"></div>
+    </div>
+    <div class="field"><label>Prioridade</label>${seg("prioridade",[["essencial","Essencial pra mudar"],["depois","Pode esperar"]],x.prioridade)}</div>
+    <div class="field"><label for="i-loja">Loja ou modelo</label><input id="i-loja" name="loja" maxlength="60" value="${esc(x.loja)}" placeholder="opcional"></div>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" name="cha" ${x.cha?"checked":""}> Colocar na lista do chá de panela</label>
+    ${it&&it.status==="comprado"?`<div class="field"><label for="i-pago">Valor pago (R$)</label><input id="i-pago" name="pago" inputmode="decimal" value="${esc(moneyInput(x.pago))}"></div>`:""}
+    <div class="dlg-actions">${it?`<button class="btn danger" value="delete">Apagar</button>`:""}<div class="right"><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="ok">Salvar</button></div></div>`,
+  async (fd, action)=>{
+    if(action==="delete"){ if(it.movId) await del("movs", it.movId); return await del("itens", it.id); }
+    const est=parseMoney(fd.get("estimado"));
+    const data={...strip(x), nome:(fd.get("nome")||"").trim(), comodo:fd.get("comodo"), estimado:isNaN(est)?null:Math.round(est*100)/100, prioridade:fd.get("prioridade")||"essencial", loja:(fd.get("loja")||"").trim(), cha:!!fd.get("cha")};
+    if(it && it.status==="comprado"){
+      const p=parseMoney(fd.get("pago")); if(p>0){ data.pago=Math.round(p*100)/100;
+        if(it.movId){ const mv=S.movs.find(v=>v.id===it.movId); if(mv) await put("movs", mv.id, {...strip(mv), valor:data.pago, obs:"Compra: "+data.nome}); } }
+    }
+    return await put("itens", it?it.id:newId("itens"), data) && (toast("Item salvo"), true);
+  });
+}
+
+function buyDialog(it){
+  const cm=casaMetaId();
+  openDlg(`<h3>Compramos: ${esc(it.nome)}</h3>
+    <div class="row2">
+      <div class="field"><label for="b-valor">Quanto pagamos (R$)</label><input id="b-valor" name="valor" inputmode="decimal" value="${esc(moneyInput(it.estimado))}" required></div>
+      <div class="field"><label for="b-data">Data</label><input id="b-data" type="date" name="data" value="${today()}"></div>
+    </div>
+    <div class="field"><label for="b-com">Pago com</label><select id="b-com" name="pagoCom">${metaOptions(cm, `<option value="fora">Outro dinheiro (não sai da reserva)</option>`)}</select>
+    <span class="hint">Se sair do dinheiro guardado, o valor é descontado da reserva automaticamente.</span></div>
+    <div class="dlg-actions"><div class="right"><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="ok">Confirmar compra</button></div></div>`,
+  async fd=>{
+    const v=parseMoney(fd.get("valor")); if(!(v>0)){ toast("Digite quanto pagaram."); return false; }
+    const valor=Math.round(v*100)/100, pagoCom=fd.get("pagoCom"); let movId=null;
+    if(pagoCom!=="fora"){
+      movId=newId("movs");
+      const ok=await put("movs", movId, {tipo:"gasto", valor, metaId:pagoCom, quem:"Juntos", data:fd.get("data")||today(), obs:"Compra: "+it.nome, itemId:it.id, criado:Date.now()});
+      if(!ok) return false;
+    }
+    const ok = await put("itens", it.id, {...strip(it), status:"comprado", pago:valor, pagoCom, movId});
+    if(ok) toast(it.nome+" comprado!");
+    return ok;
+  }, ()=>renderCasa());
+}
+
+async function setStatus(it, st){
+  if(st===it.status) return;
+  if(st==="comprado"){ buyDialog(it); return; }
+  if(it.movId) await del("movs", it.movId);
+  await put("itens", it.id, {...strip(it), status:st, pago:null, pagoCom:null, movId:null});
+  if(st==="ganhado") toast("Presente registrado: "+it.nome);
+}
+
+/* ---------- Eventos ---------- */
+document.addEventListener("click", async e=>{
+  const q=e.target.closest("[data-quem]"); if(q){ UI.quem=q.dataset.quem; renderMovs(); return; }
+  const c=e.target.closest("[data-casa]"); if(c){ UI.casa=c.dataset.casa; renderCasa(); return; }
+  const a=e.target.closest("[data-act]"); if(!a) return;
+  const act=a.dataset.act, id=a.dataset.id;
+  if(act==="new-mov") movDialog(null,{meta:a.dataset.meta, tipo:a.dataset.tipo});
+  else if(act==="edit-mov") movDialog(S.movs.find(x=>x.id===id));
+  else if(act==="new-meta") metaDialog(null);
+  else if(act==="edit-meta") metaDialog(S.metas.find(x=>x.id===id));
+  else if(act==="new-item") itemDialog(null);
+  else if(act==="edit-item") itemDialog(S.itens.find(x=>x.id===id));
+  else if(act==="copy-cha"){
+    const its=S.itens.filter(i=>i.cha && i.status==="falta");
+    if(!its.length){ toast("Nenhum item marcado pra lista do chá."); return; }
+    const txt="Lista do chá de panela · Bruno & Andressa\n\n"+COMODOS.map(cm=>{ const g=its.filter(i=>(COMODOS.includes(i.comodo)?i.comodo:"Outros")===cm); return g.length? cm+"\n"+g.map(i=>"• "+i.nome+(i.loja?" ("+i.loja+")":"")).join("\n") : ""; }).filter(Boolean).join("\n\n");
+    try{ await navigator.clipboard.writeText(txt); toast("Lista copiada. É só colar no WhatsApp."); }
+    catch(err){ openDlg(`<h3>Lista do chá</h3><div class="field"><label for="cha-txt">Selecione e copie</label><textarea id="cha-txt" rows="12">${esc(txt)}</textarea></div><div class="dlg-actions"><div class="right"><button class="btn primary" value="cancel">Fechar</button></div></div>`, null); }
+  }
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Enter"){ const n=e.target.closest?.(".nm[data-act]"); if(n){ e.preventDefault(); n.click(); } } });
+document.addEventListener("change", e=>{
+  if(e.target.id==="mov-filter-meta"){ UI.meta=e.target.value; renderMovs(); return; }
+  const s=e.target.closest("[data-item-status]");
+  if(s){ const it=S.itens.find(i=>i.id===s.dataset.itemStatus); if(it) setStatus(it, s.value); }
+});
+$("#dates-form").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const fd=new FormData(e.target);
+  const ok=await put("config","geral",{...S.config, dataCha:fd.get("dataCha")||null, dataCasamento:fd.get("dataCasamento")||null, dataMudanca:fd.get("dataMudanca")||null});
+  if(ok){ toast("Datas salvas"); document.activeElement.blur(); }
+});
+
+/* ---------- Dados ---------- */
+const num = v => v==null ? null : Number(v);
+const FIX = {
+  metas: r=>({...r, alvo:num(r.alvo)}),
+  itens: r=>({...r, estimado:num(r.estimado), pago:num(r.pago)}),
+  movs:  r=>({...r, valor:num(r.valor), criado:num(r.criado)}),
+};
+async function refresh(col){
+  if(col==="config"){
+    const {data,error}=await sb.from("config").select("*").eq("id","geral").maybeSingle();
+    if(!error){ S.config = data ? {...data} : {}; delete S.config.id; }
+  } else {
+    const {data,error}=await sb.from(col).select("*");
+    if(error){ console.error(error); loadErr="Não consegui carregar os dados agora. Recarregue a página."; }
+    else { S[col]=data.map(FIX[col]); loadErr=""; }
+  }
+  renderAll();
+}
+let channel=null, refreshT={};
+async function start(){
+  db = sb; $("#login").hidden = true;
+  await Promise.all(["config","metas","movs","itens"].map(refresh));
+  if(!channel){
+    channel = sb.channel("financas");
+    ["config","metas","movs","itens"].forEach(t=>channel.on("postgres_changes",{event:"*",schema:"public",table:t},()=>{ clearTimeout(refreshT[t]); refreshT[t]=setTimeout(()=>refresh(t),250); }));
+    channel.subscribe();
+  }
+}
+function showLogin(){ db=null; $("#login").hidden=false; setTimeout(()=>$("#l-senha").focus(),30); }
+$("#login-form").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const btn=$("#login-btn"); btn.disabled=true; $("#login-err").textContent="";
+  const {error}=await sb.auth.signInWithPassword({email:LOGIN_EMAIL, password:$("#l-senha").value.trim()});
+  btn.disabled=false;
+  if(error){ $("#login-err").textContent = /invalid/i.test(error.message) ? "Senha errada. Tente de novo." : "Não deu pra entrar agora. Confira a internet e tente de novo."; return; }
+  $("#l-senha").value=""; start();
+});
+$("#pw-form").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const a=$("#pw1").value, b=$("#pw2").value;
+  if(a.length<8){ toast("A senha precisa ter pelo menos 8 caracteres."); return; }
+  if(a!==b){ toast("As duas senhas não estão iguais."); return; }
+  const {error}=await sb.auth.updateUser({password:a});
+  if(error){ toast("Não deu pra trocar a senha. Tente de novo."); return; }
+  e.target.reset(); toast("Senha trocada. Avise a Andressa da nova senha.");
+});
+document.addEventListener("click", async e=>{
+  if(e.target.closest("[data-act='logout']")){ await sb.auth.signOut(); if(channel){ sb.removeChannel(channel); channel=null; } S.metas=[];S.movs=[];S.itens=[];S.config={}; renderAll(); showLogin(); }
+});
+route(); renderAll();
+sb.auth.getSession().then(({data})=>{ if(data && data.session) start(); else showLogin(); });
+})();
+</script>
+</body>
+</html>
