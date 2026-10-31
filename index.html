@@ -6,7 +6,7 @@
 <title>Bruno & Andressa · Nossas Finanças</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* Layout: cabeçalho com contagem regressiva, abas, resumo antes do detalhe; uma coluna no celular */
 :root{
@@ -151,6 +151,9 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:12px}
 .toolbar select{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:6px 10px}
 
+.brand{display:flex;align-items:center;gap:16px}
+.crest-mark{width:92px;height:auto;flex:none}
+.crest-full{width:100%;max-width:250px;height:auto;align-self:center}
 .login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}
 .login[hidden]{display:none}
 .login-box{width:min(380px,100%);display:flex;flex-direction:column;gap:14px}
@@ -161,6 +164,8 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
   .names{font-size:36px}
 }
 @media (max-width:420px){
+  .crest-mark{width:64px}
+  .brand{gap:10px}
   .wrap{padding:0 16px 56px}
   .tile .v{font-size:20px}
   .item{grid-template-columns:1fr auto}
@@ -173,9 +178,12 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
 <body>
 <div class="wrap">
   <header class="top">
-    <div>
+    <div class="brand">
+      <svg viewBox="170 175 260 205" class="crest-mark" role="img" aria-label="Monograma B e A"><text x="300" y="300" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="150" font-weight="500" fill="var(--accent)">B<tspan font-style="italic" font-size="105" fill="var(--gold)" dx="3" dy="-4">&amp;</tspan><tspan dx="3" dy="4">A</tspan></text><line x1="195.0" y1="360" x2="405.0" y2="360" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="277.0" cy="353.0" rx="11" ry="4" transform="rotate(35 277.0 353.0)" fill="var(--accent)"/><ellipse cx="277.0" cy="367.0" rx="11" ry="4" transform="rotate(-35 277.0 367.0)" fill="var(--accent)"/><ellipse cx="260.0" cy="353.0" rx="11" ry="4" transform="rotate(35 260.0 353.0)" fill="var(--accent)"/><ellipse cx="260.0" cy="367.0" rx="11" ry="4" transform="rotate(-35 260.0 367.0)" fill="var(--accent)"/><ellipse cx="243.0" cy="353.0" rx="11" ry="4" transform="rotate(35 243.0 353.0)" fill="var(--accent)"/><ellipse cx="243.0" cy="367.0" rx="11" ry="4" transform="rotate(-35 243.0 367.0)" fill="var(--accent)"/><ellipse cx="226.0" cy="353.0" rx="11" ry="4" transform="rotate(35 226.0 353.0)" fill="var(--accent)"/><ellipse cx="226.0" cy="367.0" rx="11" ry="4" transform="rotate(-35 226.0 367.0)" fill="var(--accent)"/><ellipse cx="209.0" cy="353.0" rx="11" ry="4" transform="rotate(35 209.0 353.0)" fill="var(--accent)"/><ellipse cx="209.0" cy="367.0" rx="11" ry="4" transform="rotate(-35 209.0 367.0)" fill="var(--accent)"/><ellipse cx="323.0" cy="353.0" rx="11" ry="4" transform="rotate(-35 323.0 353.0)" fill="var(--accent)"/><ellipse cx="323.0" cy="367.0" rx="11" ry="4" transform="rotate(35 323.0 367.0)" fill="var(--accent)"/><ellipse cx="340.0" cy="353.0" rx="11" ry="4" transform="rotate(-35 340.0 353.0)" fill="var(--accent)"/><ellipse cx="340.0" cy="367.0" rx="11" ry="4" transform="rotate(35 340.0 367.0)" fill="var(--accent)"/><ellipse cx="357.0" cy="353.0" rx="11" ry="4" transform="rotate(-35 357.0 353.0)" fill="var(--accent)"/><ellipse cx="357.0" cy="367.0" rx="11" ry="4" transform="rotate(35 357.0 367.0)" fill="var(--accent)"/><ellipse cx="374.0" cy="353.0" rx="11" ry="4" transform="rotate(-35 374.0 353.0)" fill="var(--accent)"/><ellipse cx="374.0" cy="367.0" rx="11" ry="4" transform="rotate(35 374.0 367.0)" fill="var(--accent)"/><ellipse cx="391.0" cy="353.0" rx="11" ry="4" transform="rotate(-35 391.0 353.0)" fill="var(--accent)"/><ellipse cx="391.0" cy="367.0" rx="11" ry="4" transform="rotate(35 391.0 367.0)" fill="var(--accent)"/><circle cx="300" cy="360" r="4" fill="var(--gold)"/></svg>
+      <div>
       <h1 class="names">Bruno <em>&amp;</em> Andressa</h1>
       <div class="sub">O que já juntamos, o que falta e a casa que estamos montando</div>
+      </div>
     </div>
     <div class="events" id="events"></div>
   </header>
@@ -250,8 +258,78 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
 
 <div id="login" class="login" hidden>
   <form id="login-form" class="login-box">
-    <h1 class="names">Bruno <em>&amp;</em> Andressa</h1>
-    <p class="sub">Digite a senha da família pra entrar.</p>
+    <svg viewBox="0 0 600 760" class="crest-full" role="img" aria-label="Brasão da família Bruno e Andressa">
+<defs><path id="arc" d="M150,175 A170,170 0 0 1 450,170"/></defs>
+<text font-family="Cormorant Garamond, Georgia, serif" font-size="26" letter-spacing="9" fill="var(--gold)" font-weight="600"><textPath href="#arc" startOffset="50%" text-anchor="middle">FAMÍLIA</textPath></text>
+<g transform="translate(300,118)" fill="var(--gold)"><path d="M0,-16 L4.5,-4.5 L16,0 L4.5,4.5 L0,16 L-4.5,4.5 L-16,0 L-4.5,-4.5 Z"/></g>
+<path d="M260,668 Q30,600 85,250" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+<ellipse cx="215.1" cy="631.4" rx="25.2" ry="8.7" transform="rotate(-107.8 215.1 631.4)" fill="var(--accent)"/>
+<ellipse cx="200.5" cy="663.8" rx="25.2" ry="8.7" transform="rotate(-203.8 200.5 663.8)" fill="var(--accent)"/>
+<ellipse cx="185.5" cy="613.3" rx="24.4" ry="8.5" transform="rotate(-99.2 185.5 613.3)" fill="var(--accent)"/>
+<ellipse cx="166.8" cy="642.2" rx="24.4" ry="8.5" transform="rotate(-195.2 166.8 642.2)" fill="var(--accent)"/>
+<ellipse cx="160.1" cy="591.5" rx="23.6" ry="8.2" transform="rotate(-90.0 160.1 591.5)" fill="var(--accent)"/>
+<ellipse cx="137.8" cy="616.3" rx="23.6" ry="8.2" transform="rotate(-186.0 137.8 616.3)" fill="var(--accent)"/>
+<ellipse cx="138.8" cy="566.1" rx="22.9" ry="7.9" transform="rotate(-80.6 138.8 566.1)" fill="var(--accent)"/>
+<ellipse cx="113.6" cy="586.3" rx="22.9" ry="7.9" transform="rotate(-176.6 113.6 586.3)" fill="var(--accent)"/>
+<ellipse cx="121.3" cy="537.1" rx="22.1" ry="7.6" transform="rotate(-71.5 121.3 537.1)" fill="var(--accent)"/>
+<ellipse cx="94.2" cy="552.4" rx="22.1" ry="7.6" transform="rotate(-167.5 94.2 552.4)" fill="var(--accent)"/>
+<ellipse cx="107.5" cy="504.2" rx="21.3" ry="7.4" transform="rotate(-63.1 107.5 504.2)" fill="var(--accent)"/>
+<ellipse cx="79.4" cy="515.0" rx="21.3" ry="7.4" transform="rotate(-159.1 79.4 515.0)" fill="var(--accent)"/>
+<ellipse cx="97.2" cy="467.1" rx="20.5" ry="7.1" transform="rotate(-55.7 97.2 467.1)" fill="var(--accent)"/>
+<ellipse cx="69.0" cy="474.0" rx="20.5" ry="7.1" transform="rotate(-151.7 69.0 474.0)" fill="var(--accent)"/>
+<ellipse cx="90.5" cy="425.9" rx="19.7" ry="6.8" transform="rotate(-49.3 90.5 425.9)" fill="var(--accent)"/>
+<ellipse cx="62.9" cy="429.4" rx="19.7" ry="6.8" transform="rotate(-145.3 62.9 429.4)" fill="var(--accent)"/>
+<ellipse cx="87.7" cy="380.3" rx="18.9" ry="6.6" transform="rotate(-43.8 87.7 380.3)" fill="var(--accent)"/>
+<ellipse cx="60.9" cy="381.1" rx="18.9" ry="6.6" transform="rotate(-139.8 60.9 381.1)" fill="var(--accent)"/>
+<ellipse cx="88.6" cy="330.3" rx="18.2" ry="6.3" transform="rotate(-39.1 88.6 330.3)" fill="var(--accent)"/>
+<ellipse cx="63.0" cy="329.0" rx="18.2" ry="6.3" transform="rotate(-135.1 63.0 329.0)" fill="var(--accent)"/>
+<ellipse cx="93.6" cy="276.0" rx="17.4" ry="6.0" transform="rotate(-35.2 93.6 276.0)" fill="var(--accent)"/>
+<ellipse cx="69.2" cy="273.0" rx="17.4" ry="6.0" transform="rotate(-131.2 69.2 273.0)" fill="var(--accent)"/>
+<ellipse cx="87.2" cy="236.2" rx="17" ry="6.5" transform="rotate(-81.1 87.2 236.2)" fill="var(--accent)"/>
+<circle cx="155.2" cy="596.4" r="6.5" fill="var(--ink)"/>
+<circle cx="100.4" cy="479.3" r="6.5" fill="var(--ink)"/>
+<path d="M340,668 Q570,600 515,250" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+<ellipse cx="399.5" cy="663.8" rx="25.2" ry="8.7" transform="rotate(23.8 399.5 663.8)" fill="var(--accent)"/>
+<ellipse cx="384.9" cy="631.4" rx="25.2" ry="8.7" transform="rotate(-72.2 384.9 631.4)" fill="var(--accent)"/>
+<ellipse cx="433.2" cy="642.2" rx="24.4" ry="8.5" transform="rotate(15.2 433.2 642.2)" fill="var(--accent)"/>
+<ellipse cx="414.5" cy="613.3" rx="24.4" ry="8.5" transform="rotate(-80.8 414.5 613.3)" fill="var(--accent)"/>
+<ellipse cx="462.2" cy="616.3" rx="23.6" ry="8.2" transform="rotate(6.0 462.2 616.3)" fill="var(--accent)"/>
+<ellipse cx="439.9" cy="591.5" rx="23.6" ry="8.2" transform="rotate(-90.0 439.9 591.5)" fill="var(--accent)"/>
+<ellipse cx="486.4" cy="586.3" rx="22.9" ry="7.9" transform="rotate(-3.4 486.4 586.3)" fill="var(--accent)"/>
+<ellipse cx="461.2" cy="566.1" rx="22.9" ry="7.9" transform="rotate(-99.4 461.2 566.1)" fill="var(--accent)"/>
+<ellipse cx="505.8" cy="552.4" rx="22.1" ry="7.6" transform="rotate(-12.5 505.8 552.4)" fill="var(--accent)"/>
+<ellipse cx="478.7" cy="537.1" rx="22.1" ry="7.6" transform="rotate(-108.5 478.7 537.1)" fill="var(--accent)"/>
+<ellipse cx="520.6" cy="515.0" rx="21.3" ry="7.4" transform="rotate(-20.9 520.6 515.0)" fill="var(--accent)"/>
+<ellipse cx="492.5" cy="504.2" rx="21.3" ry="7.4" transform="rotate(-116.9 492.5 504.2)" fill="var(--accent)"/>
+<ellipse cx="531.0" cy="474.0" rx="20.5" ry="7.1" transform="rotate(-28.3 531.0 474.0)" fill="var(--accent)"/>
+<ellipse cx="502.8" cy="467.1" rx="20.5" ry="7.1" transform="rotate(-124.3 502.8 467.1)" fill="var(--accent)"/>
+<ellipse cx="537.1" cy="429.4" rx="19.7" ry="6.8" transform="rotate(-34.7 537.1 429.4)" fill="var(--accent)"/>
+<ellipse cx="509.5" cy="425.9" rx="19.7" ry="6.8" transform="rotate(-130.7 509.5 425.9)" fill="var(--accent)"/>
+<ellipse cx="539.1" cy="381.1" rx="18.9" ry="6.6" transform="rotate(-40.2 539.1 381.1)" fill="var(--accent)"/>
+<ellipse cx="512.3" cy="380.3" rx="18.9" ry="6.6" transform="rotate(-136.2 512.3 380.3)" fill="var(--accent)"/>
+<ellipse cx="537.0" cy="329.0" rx="18.2" ry="6.3" transform="rotate(-44.9 537.0 329.0)" fill="var(--accent)"/>
+<ellipse cx="511.4" cy="330.3" rx="18.2" ry="6.3" transform="rotate(-140.9 511.4 330.3)" fill="var(--accent)"/>
+<ellipse cx="530.8" cy="273.0" rx="17.4" ry="6.0" transform="rotate(-48.8 530.8 273.0)" fill="var(--accent)"/>
+<ellipse cx="506.4" cy="276.0" rx="17.4" ry="6.0" transform="rotate(-144.8 506.4 276.0)" fill="var(--accent)"/>
+<ellipse cx="512.8" cy="236.2" rx="17" ry="6.5" transform="rotate(-98.9 512.8 236.2)" fill="var(--accent)"/>
+<circle cx="444.8" cy="596.4" r="6.5" fill="var(--ink)"/>
+<circle cx="499.6" cy="479.3" r="6.5" fill="var(--ink)"/>
+<path d="M170,190 H430 V400 C430,510 370,580 300,618 C230,580 170,510 170,400 Z" fill="var(--accent)"/>
+<path d="M184,204 H416 V400 C416,500 362,563 300,598 C238,563 184,500 184,400 Z" fill="none" stroke="var(--gold)" stroke-width="2.5"/>
+<line x1="184" y1="282" x2="416" y2="282" stroke="var(--gold)" stroke-width="2"/>
+<g fill="none" stroke="var(--bg)" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+<path d="M268,262 V238 L300,214 L332,238 V262"/><path d="M291,262 V246 H309 V262"/>
+</g>
+<g fill="none" stroke="var(--gold)" stroke-width="2"><circle cx="252" cy="246" r="7"/><circle cx="348" cy="246" r="7"/></g>
+<text x="300" y="432" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="100" font-weight="500" fill="var(--bg)">B<tspan font-style="italic" font-size="72" fill="var(--gold)" dx="2" dy="-4">&amp;</tspan><tspan dx="2" dy="4">A</tspan></text>
+<text x="300" y="512" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="22" letter-spacing="8" fill="var(--gold)">MMXXVII</text>
+<path d="M96,640 L140,628 L140,680 L96,692 L114,662 Z" fill="var(--ink)"/>
+<path d="M504,640 L460,628 L460,680 L504,692 L486,662 Z" fill="var(--ink)"/>
+<path d="M130,624 Q300,670 470,624 L470,680 Q300,726 130,680 Z" fill="var(--gold)"/>
+<path id="rib" d="M136,662 Q300,706 464,662" fill="none"/>
+<text font-family="Cormorant Garamond, Georgia, serif" font-size="22" font-weight="600" letter-spacing="3" fill="var(--bg)"><textPath href="#rib" startOffset="50%" text-anchor="middle">BRUNO &amp; ANDRESSA</textPath></text>
+</svg>
+    <p class="sub" style="text-align:center">Digite a senha da família pra entrar.</p>
     <div class="field"><label for="l-senha">Senha</label><input id="l-senha" type="password" autocomplete="current-password" required></div>
     <p id="login-err" class="login-err" role="alert"></p>
     <button class="btn primary" type="submit" id="login-btn">Entrar</button>
