@@ -350,7 +350,8 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
 "use strict";
 const S = { config:{}, metas:[], movs:[], itens:[], loaded:{config:false,metas:false,movs:false,itens:false} };
 const SB_URL="https://qlyezqrdwogicoasmkbn.supabase.co", SB_KEY="sb_publishable_cD-1wZ_4qPe8vHrbCLbFmQ_SFTYSHRu", LOGIN_EMAIL="familia@brunoeandressa.com";
-const sb = window.supabase.createClient(SB_URL, SB_KEY);
+try{ Object.keys(localStorage).filter(k=>k.startsWith("sb-")).forEach(k=>localStorage.removeItem(k)); }catch(e){}
+const sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:false, autoRefreshToken:true}});
 let db = null, canWrite = true, loadErr = "";
 const UI = { quem:"Todos", meta:"", casa:"falta" };
 const PESSOAS = ["Bruno","Andressa","Juntos"];
@@ -795,7 +796,7 @@ document.addEventListener("click", async e=>{
   if(e.target.closest("[data-act='logout']")){ await sb.auth.signOut(); if(channel){ sb.removeChannel(channel); channel=null; } S.metas=[];S.movs=[];S.itens=[];S.config={}; renderAll(); showLogin(); }
 });
 route(); renderAll();
-sb.auth.getSession().then(({data})=>{ if(data && data.session) start(); else showLogin(); });
+showLogin();
 })();
 </script>
 </body>
