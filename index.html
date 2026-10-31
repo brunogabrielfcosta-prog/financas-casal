@@ -218,7 +218,7 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
     <div class="toolbar">
       <div class="chips" id="casa-filter"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" data-act="copy-cha">Copiar lista do chá</button>
+        <button class="btn" data-act="copy-cha">Copiar lista de presentes</button>
         <button class="btn primary" data-act="new-item">+ Item</button>
       </div>
     </div>
@@ -230,8 +230,7 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
     <div class="section-h" style="margin-top:0"><h2>Datas</h2></div>
     <form class="panel" id="dates-form">
       <div class="row2">
-        <div class="field"><label for="d-cha">Chá de panela</label><input type="date" id="d-cha" name="dataCha"><span class="hint">Deixe vazio se ainda não tem dia</span></div>
-        <div class="field"><label for="d-cas">Jantar do casamento</label><input type="date" id="d-cas" name="dataCasamento"></div>
+        <div class="field"><label for="d-cas">Jantar do casamento</label><input type="date" id="d-cas" name="dataCasamento"><span class="hint">Deixe vazio se ainda não tem dia</span></div>
         <div class="field"><label for="d-mud">Mudança pro apê</label><input type="date" id="d-mud" name="dataMudanca"></div>
       </div>
       <div style="margin-top:12px"><button class="btn primary" type="submit">Salvar datas</button></div>
@@ -346,13 +345,12 @@ function stats(m){
 /* ---------- Render ---------- */
 function renderEvents(){
   const c=S.config, ev=[];
-  const mCha = S.metas.find(m=>m.id==="cha"), mCas = S.metas.find(m=>m.id==="casamento");
+  const mCas = S.metas.find(m=>m.id==="casamento");
   const add=(label,date,fallbackYm)=>{
     if(date){ const d=daysUntil(date); ev.push(`<div class="event"><b>${label}</b><span class="num">${d>0? d+" dias" : d===0 ? "É hoje" : "Já foi"}</span><small>${fmtData(date)}</small></div>`); }
     else if(fallbackYm){ const mu=monthsUntil(fallbackYm); ev.push(`<div class="event"><b>${label}</b><span>${fmtMes(fallbackYm).replace(/^./,ch=>ch.toUpperCase())}</span><small>${mu>0? "daqui a "+mu+(mu===1?" mês":" meses") : "este mês"}</small></div>`); }
   };
   add("Mudança", c.dataMudanca, null);
-  add("Chá de panela", c.dataCha, mCha && mCha.prazo);
   add("Casamento", c.dataCasamento, mCas && mCas.prazo);
   $("#events").innerHTML = ev.join("");
 }
@@ -436,7 +434,7 @@ function renderCasa(){
     <div class="tile"><b>Já compramos</b><div class="v num">${brl(comp)}</div><small>${nComp} ${nComp===1?"item":"itens"}</small></div>
     <div class="tile"><b>Ganhamos</b><div class="v num">${nGanho}</div><small>${nGanho===1?"presente":"presentes"}</small></div>
     <div class="tile"><b>Guardado pra casa</b><div class="v num">${s?brl(s.saldo):"—"}</div><small>${s? (s.saldo>=falta && falta>0 ? "dá pra comprar tudo" : s.falta>0 ? "faltam "+brl0(s.falta) : "tudo coberto") : "crie a meta da casa"}</small></div>`;
-  const F=[["falta","Falta comprar"],["comprado","Comprados"],["ganhado","Ganhamos"],["cha","Lista do chá"],["todos","Todos"]];
+  const F=[["falta","Falta comprar"],["comprado","Comprados"],["ganhado","Ganhamos"],["cha","Lista de presentes"],["todos","Todos"]];
   $("#casa-filter").innerHTML = F.map(([k,l])=>`<button class="chip" aria-pressed="${UI.casa===k}" data-casa="${k}">${l}</button>`).join("");
   const vis = its.filter(it => UI.casa==="todos" || (UI.casa==="cha" ? it.cha && it.status==="falta" : it.status===UI.casa));
   if(!vis.length){ $("#casa-list").innerHTML=`<div class="panel empty">${UI.casa==="falta"&&its.length?"Tudo comprado ou ganhado. Parabéns!":"Nada por aqui."} <button class="btn small" data-act="new-item">+ Adicionar item</button></div>`; return; }
@@ -451,7 +449,7 @@ function renderCasa(){
       const priceSub = it.status==="comprado" ? (it.pagoCom==="fora"?"pago por fora":"pago da reserva") : it.status==="falta" && Number(it.estimado)>0 ? "estimado" : "";
       return `<div class="item ${done?"done":""}">
         <div><div class="nm" data-act="edit-item" data-id="${esc(it.id)}" tabindex="0" role="button">${esc(it.nome)}</div>
-          <div class="meta-line">${it.prioridade==="essencial"?`<span class="pill">Essencial</span>`:`<span class="pill mute">Pode esperar</span>`}${it.cha?`<span class="pill gold">Lista do chá</span>`:""}${it.loja?`<span class="pill mute">${esc(it.loja)}</span>`:""}</div></div>
+          <div class="meta-line">${it.prioridade==="essencial"?`<span class="pill">Essencial</span>`:`<span class="pill mute">Pode esperar</span>`}${it.cha?`<span class="pill gold">Lista de presentes</span>`:""}${it.loja?`<span class="pill mute">${esc(it.loja)}</span>`:""}</div></div>
         <div class="price num">${priceMain}${priceSub?`<small>${priceSub}</small>`:""}</div>
         <div class="stat"><select class="status" data-item-status="${esc(it.id)}" aria-label="Status de ${esc(it.nome)}" ${canWrite?"":"disabled"}>
           <option value="falta" ${it.status==="falta"?"selected":""}>Falta comprar</option>
@@ -464,7 +462,7 @@ function renderCasa(){
 function renderAjustes(){
   const c=S.config;
   if(document.activeElement?.closest?.("#dates-form")==null){
-    $("#d-cha").value=c.dataCha||""; $("#d-cas").value=c.dataCasamento||""; $("#d-mud").value=c.dataMudanca||"";
+    $("#d-cas").value=c.dataCasamento||""; $("#d-mud").value=c.dataMudanca||"";
   }
   $("#metas-admin").innerHTML = S.metas.length ? `<table><thead><tr><th>Meta</th><th>Valor</th><th>Prazo</th><th></th></tr></thead><tbody>${S.metas.map(m=>`<tr><td><strong>${esc(m.nome)}</strong></td><td class="num">${m.auto?"soma da lista da casa":(Number(m.alvo)>0?brl(m.alvo):`<span class="pill warn">definir</span>`)}</td><td>${m.prazo?esc(fmtMes(m.prazo)):`<span class="pill mute">sem prazo</span>`}</td><td class="r"><button class="btn small" data-act="edit-meta" data-id="${esc(m.id)}">Editar</button></td></tr>`).join("")}</tbody></table>` : `<div class="empty">Nenhuma meta.</div>`;
 }
@@ -583,7 +581,7 @@ function itemDialog(it){
     </div>
     <div class="field"><label>Prioridade</label>${seg("prioridade",[["essencial","Essencial pra mudar"],["depois","Pode esperar"]],x.prioridade)}</div>
     <div class="field"><label for="i-loja">Loja ou modelo</label><input id="i-loja" name="loja" maxlength="60" value="${esc(x.loja)}" placeholder="opcional"></div>
-    <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" name="cha" ${x.cha?"checked":""}> Colocar na lista do chá de panela</label>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" name="cha" ${x.cha?"checked":""}> Colocar na lista de presentes do casamento</label>
     ${it&&it.status==="comprado"?`<div class="field"><label for="i-pago">Valor pago (R$)</label><input id="i-pago" name="pago" inputmode="decimal" value="${esc(moneyInput(x.pago))}"></div>`:""}
     <div class="dlg-actions">${it?`<button class="btn danger" value="delete">Apagar</button>`:""}<div class="right"><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="ok">Salvar</button></div></div>`,
   async (fd, action)=>{
@@ -644,10 +642,10 @@ document.addEventListener("click", async e=>{
   else if(act==="edit-item") itemDialog(S.itens.find(x=>x.id===id));
   else if(act==="copy-cha"){
     const its=S.itens.filter(i=>i.cha && i.status==="falta");
-    if(!its.length){ toast("Nenhum item marcado pra lista do chá."); return; }
-    const txt="Lista do chá de panela · Bruno & Andressa\n\n"+COMODOS.map(cm=>{ const g=its.filter(i=>(COMODOS.includes(i.comodo)?i.comodo:"Outros")===cm); return g.length? cm+"\n"+g.map(i=>"• "+i.nome+(i.loja?" ("+i.loja+")":"")).join("\n") : ""; }).filter(Boolean).join("\n\n");
+    if(!its.length){ toast("Nenhum item marcado pra lista de presentes."); return; }
+    const txt="Lista de presentes · Casamento Bruno & Andressa\n\n"+COMODOS.map(cm=>{ const g=its.filter(i=>(COMODOS.includes(i.comodo)?i.comodo:"Outros")===cm); return g.length? cm+"\n"+g.map(i=>"• "+i.nome+(i.loja?" ("+i.loja+")":"")).join("\n") : ""; }).filter(Boolean).join("\n\n");
     try{ await navigator.clipboard.writeText(txt); toast("Lista copiada. É só colar no WhatsApp."); }
-    catch(err){ openDlg(`<h3>Lista do chá</h3><div class="field"><label for="cha-txt">Selecione e copie</label><textarea id="cha-txt" rows="12">${esc(txt)}</textarea></div><div class="dlg-actions"><div class="right"><button class="btn primary" value="cancel">Fechar</button></div></div>`, null); }
+    catch(err){ openDlg(`<h3>Lista de presentes</h3><div class="field"><label for="cha-txt">Selecione e copie</label><textarea id="cha-txt" rows="12">${esc(txt)}</textarea></div><div class="dlg-actions"><div class="right"><button class="btn primary" value="cancel">Fechar</button></div></div>`, null); }
   }
 });
 document.addEventListener("keydown", e=>{ if(e.key==="Enter"){ const n=e.target.closest?.(".nm[data-act]"); if(n){ e.preventDefault(); n.click(); } } });
@@ -659,7 +657,7 @@ document.addEventListener("change", e=>{
 $("#dates-form").addEventListener("submit", async e=>{
   e.preventDefault();
   const fd=new FormData(e.target);
-  const ok=await put("config","geral",{...S.config, dataCha:fd.get("dataCha")||null, dataCasamento:fd.get("dataCasamento")||null, dataMudanca:fd.get("dataMudanca")||null});
+  const ok=await put("config","geral",{...S.config, dataCasamento:fd.get("dataCasamento")||null, dataMudanca:fd.get("dataMudanca")||null});
   if(ok){ toast("Datas salvas"); document.activeElement.blur(); }
 });
 
