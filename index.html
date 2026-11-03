@@ -202,6 +202,8 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
     <a href="#movimentacoes" data-tab="movimentacoes">Movimentações</a>
     <a href="#casa" data-tab="casa">Casa nova</a>
     <a href="#convidados" data-tab="convidados">Casamento</a>
+    <a href="#jantar" data-tab="jantar">Jantar</a>
+    <a href="#fornecedores" data-tab="fornecedores">Fornecedores</a>
     <a href="#ajustes" data-tab="ajustes">Datas e metas</a>
   </nav>
 
@@ -241,6 +243,21 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
       </div>
     </div>
     <div id="casa-list"></div>
+  </section>
+
+  <!-- JANTAR -->
+  <section class="view" id="v-jantar" hidden>
+    <div class="tiles" id="jt-tiles"></div>
+    <div class="panel" id="jt-bar"></div>
+    <div class="section-h"><h2>Gastos do jantar</h2><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><div class="chips" id="jt-filter"></div><button class="btn primary" data-act="new-gasto">+ Registrar gasto</button></div></div>
+    <div id="jt-list"></div>
+  </section>
+
+  <!-- FORNECEDORES -->
+  <section class="view" id="v-fornecedores" hidden>
+    <div class="tiles" id="fn-tiles"></div>
+    <div class="section-h" style="margin-top:6px"><h2>Fornecedores</h2><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><div class="chips" id="fn-filter"></div><button class="btn primary" data-act="new-forn">+ Registrar fornecedor</button></div></div>
+    <div id="fn-list"></div>
   </section>
 
   <!-- CASAMENTO -->
@@ -378,7 +395,7 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
 <script>
 (() => {
 "use strict";
-const S = { config:{}, metas:[], movs:[], itens:[], reservas:[], rsvps:[], loaded:{config:false,metas:false,movs:false,itens:false} };
+const S = { config:{}, metas:[], movs:[], itens:[], reservas:[], rsvps:[], fornecedores:[], gastos:[], loaded:{config:false,metas:false,movs:false,itens:false} };
 const SB_URL="https://qlyezqrdwogicoasmkbn.supabase.co", SB_KEY="sb_publishable_cD-1wZ_4qPe8vHrbCLbFmQ_SFTYSHRu", LOGIN_EMAIL="familia@brunoeandressa.com";
 try{ Object.keys(localStorage).filter(k=>k.startsWith("sb-")).forEach(k=>localStorage.removeItem(k)); }catch(e){}
 const sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:false, autoRefreshToken:true}});
@@ -531,7 +548,7 @@ function renderMovs(){
     const cls = x.tipo==="deposito"?"in":x.tipo==="retirada"?"out":"spent";
     const sign = x.tipo==="deposito"?"+":"−";
     html+=`<tr><td class="num">${fmtData(x.data)}</td><td>${tipoTxt}${x.obs?` <span style="color:var(--muted)">· ${esc(x.obs)}</span>`:""}</td><td>${esc(metaNome(x.metaId))}</td><td><span class="dot" style="background:${CORES[x.quem]||"var(--muted)"}"></span>${esc(x.quem||"")}</td><td class="r num ${cls}">${sign} ${brl(x.valor)}</td>
-      <td class="r">${x.itemId? `<span class="pill mute" title="Altere pela lista da casa">compra</span>` : `<button class="btn small ghost" data-act="edit-mov" data-id="${esc(x.id)}">Editar</button>`}</td></tr>`;
+      <td class="r">${S.gastos.some(g=>g.movId===x.id)? `<span class="pill mute" title="Altere pela aba Jantar">jantar</span>` : x.itemId? `<span class="pill mute" title="Altere pela lista da casa">compra</span>` : `<button class="btn small ghost" data-act="edit-mov" data-id="${esc(x.id)}">Editar</button>`}</td></tr>`;
   }
   $("#movs").innerHTML = html+`</tbody></table>`;
 }
@@ -590,9 +607,147 @@ function renderNotice(){
 
 function renderAll(){
   S.metas.sort((a,b)=>(a.ordem??99)-(b.ordem??99));
-  renderNotice(); renderEvents(); renderResumo(); renderMovs(); renderCasa(); renderConvidados(); renderAjustes();
+  renderNotice(); renderEvents(); renderResumo(); renderMovs(); renderCasa(); renderConvidados(); renderJantar(); renderFornecedores(); renderAjustes();
   document.querySelectorAll("[data-act^='new'],#dates-form button").forEach(b=>b.disabled=!canWrite || !db);
 }
+
+/* ---------- Jantar e fornecedores ---------- */
+const CATS=["Restaurante / buffet","Bebidas","Bolo e doces","Decoração e flores","Fotografia e vídeo","Música","Roupas e beleza","Alianças","Cartório","Convites","Outros"];
+const FSTATUS={orcando:["Orçando","mute"],contratado:["Contratado","ok"],descartado:["Descartado","warn"]};
+UI.jt="todos"; UI.fn="todos";
+const fornNome = id => { const f=S.fornecedores.find(x=>x.id===id); return f?f.nome:""; };
+const catOpts = sel => CATS.map(c=>`<option ${sel===c?"selected":""}>${c}</option>`).join("");
+function jantarMeta(){ return S.metas.find(m=>m.id==="casamento"); }
+
+function renderJantar(){
+  const m=jantarMeta(), orc=m?Number(m.alvo)||0:0, st=m?stats(m):null;
+  const pago=S.gastos.filter(g=>g.status==="pago").reduce((a,g)=>a+(g.valor||0),0);
+  const prev=S.gastos.filter(g=>g.status==="previsto").reduce((a,g)=>a+(g.valor||0),0);
+  const total=pago+prev, sobra=orc-total;
+  $("#jt-tiles").innerHTML=`
+    <div class="tile hl"><b>Orçamento do jantar</b><div class="v num">${orc?brl(orc):"—"}</div><small>${orc?"meta do casamento":"defina na aba Datas e metas"}</small></div>
+    <div class="tile"><b>Já pago</b><div class="v num">${brl(pago)}</div><small>${S.gastos.filter(g=>g.status==="pago").length} gastos</small></div>
+    <div class="tile"><b>Ainda vai pagar</b><div class="v num">${brl(prev)}</div><small>${S.gastos.filter(g=>g.status==="previsto").length} previstos</small></div>
+    <div class="tile"><b>${sobra>=0?"Sobra no orçamento":"Passou do orçamento"}</b><div class="v num" style="color:${sobra>=0?"var(--ok)":"var(--bad)"}">${orc?brl(Math.abs(sobra)):"—"}</div><small>${st?"guardado pro jantar: "+brl(st.saldo):""}</small></div>`;
+  const pct=v=>orc>0?Math.min(100,v/orc*100).toFixed(1):0;
+  $("#jt-bar").innerHTML = orc ? `<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px"><strong>Quanto do orçamento já está comprometido</strong><span class="num" style="color:var(--muted)">${brl(total)} de ${brl(orc)}</span></div>
+    <div class="bar"><i style="width:${pct(pago)}%"></i><i class="g" style="width:${Math.max(0,Math.min(100-pct(pago),pct(prev)))}%"></i></div>
+    <div class="split"><span><span class="dot" style="background:var(--accent)"></span>Pago ${brl(pago)}</span><span><span class="dot" style="background:var(--gold)"></span>Previsto ${brl(prev)}</span></div>`
+    : `<div class="empty" style="padding:6px">Defina o valor da meta "Casamento (jantar)" pra acompanhar o orçamento.</div>`;
+  $("#jt-filter").innerHTML=[["todos","Todos"],["previsto","A pagar"],["pago","Pagos"]].map(([k,l])=>`<button class="chip" aria-pressed="${UI.jt===k}" data-jt="${k}">${l}</button>`).join("");
+  const gs=S.gastos.filter(g=>UI.jt==="todos"||g.status===UI.jt).sort((a,b)=>(a.status===b.status?0:a.status==="previsto"?-1:1)||(a.data||"").localeCompare(b.data||""));
+  if(!gs.length){ $("#jt-list").innerHTML=`<div class="panel empty">${S.gastos.length?"Nada com esse filtro.":"Nenhum gasto registrado ainda. Registre o que já pagou ou o que ainda vai pagar (restaurante, bolo, fotógrafo…)."}</div>`; return; }
+  const grupos={}; gs.forEach(g=>{ const c=CATS.includes(g.categoria)?g.categoria:"Outros"; (grupos[c]=grupos[c]||[]).push(g); });
+  $("#jt-list").innerHTML = CATS.filter(c=>grupos[c]).map(c=>{ const g=grupos[c]; const t=g.reduce((a,x)=>a+(x.valor||0),0);
+    return `<div class="room"><h3><span>${c}</span><span class="num">${brl(t)}</span></h3><div class="panel" style="padding:0">${g.map(x=>`
+      <div class="item ${x.status==="pago"?"":""}">
+        <div><div class="nm" data-act="edit-gasto" data-id="${esc(x.id)}" tabindex="0" role="button">${esc(x.descricao)}</div>
+          <div class="meta-line">${x.status==="pago"?`<span class="pill ok">Pago${x.data?" · "+fmtData(x.data):""}</span>`:`<span class="pill gold">A pagar${x.data?" até "+fmtData(x.data):""}</span>`}${x.fornecedorId&&fornNome(x.fornecedorId)?`<span class="pill mute">${esc(fornNome(x.fornecedorId))}</span>`:""}${x.movId?`<span class="pill mute">saiu da reserva</span>`:""}${x.obs?`<span class="pill mute">${esc(x.obs)}</span>`:""}</div></div>
+        <div class="price num">${brl(x.valor)}</div>
+        <div class="stat">${x.status==="previsto"?`<button class="btn small" data-act="pay-gasto" data-id="${esc(x.id)}" ${canWrite?"":"disabled"}>Marcar pago</button>`:""}</div>
+      </div>`).join("")}</div></div>`; }).join("");
+}
+
+function renderFornecedores(){
+  const fs=S.fornecedores;
+  const contr=fs.filter(f=>f.status==="contratado");
+  const gastoDe=id=>S.gastos.filter(g=>g.fornecedorId===id).reduce((a,g)=>a+(g.valor||0),0);
+  const pagoDe=id=>S.gastos.filter(g=>g.fornecedorId===id&&g.status==="pago").reduce((a,g)=>a+(g.valor||0),0);
+  $("#fn-tiles").innerHTML=`
+    <div class="tile hl"><b>Contratados</b><div class="v num">${contr.length}</div><small>de ${fs.length} fornecedores</small></div>
+    <div class="tile"><b>Orçando</b><div class="v num">${fs.filter(f=>f.status==="orcando").length}</div><small>ainda decidindo</small></div>
+    <div class="tile"><b>Total contratado</b><div class="v num">${brl(contr.reduce((a,f)=>a+(f.valor||0),0))}</div><small>pelos valores combinados</small></div>
+    <div class="tile"><b>Já pago a eles</b><div class="v num">${brl(contr.reduce((a,f)=>a+pagoDe(f.id),0))}</div><small>pelos gastos registrados</small></div>`;
+  $("#fn-filter").innerHTML=[["todos","Todos"],["orcando","Orçando"],["contratado","Contratados"],["descartado","Descartados"]].map(([k,l])=>`<button class="chip" aria-pressed="${UI.fn===k}" data-fn="${k}">${l}</button>`).join("");
+  const vis=fs.filter(f=>UI.fn==="todos"||f.status===UI.fn).sort((a,b)=>(a.nome||"").localeCompare(b.nome||""));
+  if(!vis.length){ $("#fn-list").innerHTML=`<div class="panel empty">${fs.length?"Nada com esse filtro.":"Nenhum fornecedor registrado. Anote aqui restaurantes, confeiteiras, fotógrafos e os orçamentos de cada um."}</div>`; return; }
+  const grupos={}; vis.forEach(f=>{ const c=CATS.includes(f.categoria)?f.categoria:"Outros"; (grupos[c]=grupos[c]||[]).push(f); });
+  $("#fn-list").innerHTML = CATS.filter(c=>grupos[c]).map(c=>`<div class="room"><h3><span>${c}</span><span>${grupos[c].length}</span></h3><div class="panel" style="padding:0">${grupos[c].map(f=>{
+      const st=FSTATUS[f.status]||FSTATUS.orcando; const link=safeLink(f.link); const g=gastoDe(f.id);
+      return `<div class="item ${f.status==="descartado"?"done":""}">
+        <div><div class="nm" data-act="edit-forn" data-id="${esc(f.id)}" tabindex="0" role="button">${esc(f.nome)}</div>
+          <div class="meta-line"><span class="pill ${st[1]}">${st[0]}</span>${f.contato?`<span class="pill mute">${esc(f.contato)}</span>`:""}${link?`<a class="pill mute" href="${esc(link)}" target="_blank" rel="noopener" style="text-decoration:none">abrir link</a>`:""}${g?`<span class="pill gold">${brl(g)} em gastos</span>`:""}</div>
+          ${f.obs?`<div style="color:var(--muted);font-size:13px;margin-top:4px">${esc(f.obs)}</div>`:""}</div>
+        <div class="price num">${f.valor?brl(f.valor):"—"}<small>${f.status==="contratado"?"combinado":"orçamento"}</small></div>
+        <div class="stat"><button class="btn small" data-act="gasto-forn" data-id="${esc(f.id)}" ${canWrite?"":"disabled"}>+ Gasto</button></div>
+      </div>`; }).join("")}</div></div>`).join("");
+}
+function safeLink(u){ if(!u) return ""; try{ const x=new URL(/^https?:/i.test(u)?u:"https://"+u); return /^https?:$/.test(x.protocol)?x.href:""; }catch(e){ return ""; } }
+
+async function syncGastoMov(g, id){
+  // pago + descontar da reserva => cria/atualiza um gasto na meta do casamento
+  const m=jantarMeta();
+  if(g.status==="pago" && g.descontar && m){
+    const mid=g.movId||newId("movs");
+    const ok=await put("movs", mid, {tipo:"gasto", valor:g.valor, metaId:m.id, quem:"Juntos", data:g.data||today(), obs:"Jantar: "+g.descricao, itemId:null, criado:Date.now()});
+    return ok?mid:g.movId||null;
+  }
+  if(g.movId){ await del("movs", g.movId); }
+  return null;
+}
+function gastoDialog(g, preset={}){
+  const x = g || {descricao:"", categoria:preset.categoria||"Restaurante / buffet", fornecedorId:preset.fornecedorId||"", valor:"", data:"", status:"previsto", obs:""};
+  const fopts = `<option value="">Nenhum</option>`+S.fornecedores.filter(f=>f.status!=="descartado"||f.id===x.fornecedorId).map(f=>`<option value="${esc(f.id)}" ${x.fornecedorId===f.id?"selected":""}>${esc(f.nome)}</option>`).join("");
+  openDlg(`<h3>${g?"Editar gasto":"Registrar gasto do jantar"}</h3>
+    <div class="field"><label for="g-desc">O que é</label><input id="g-desc" name="descricao" value="${esc(x.descricao)}" required maxlength="80" placeholder="ex: Sinal do restaurante"></div>
+    <div class="row2">
+      <div class="field"><label for="g-valor">Valor (R$)</label><input id="g-valor" name="valor" inputmode="decimal" placeholder="0,00" value="${esc(moneyInput(x.valor))}" required></div>
+      <div class="field"><label for="g-data">Data</label><input id="g-data" type="date" name="data" value="${esc(x.data||"")}"><span class="hint">Quando pagou ou o vencimento</span></div>
+    </div>
+    <div class="field"><label>Situação</label>${seg("status",[["previsto","Ainda vai pagar"],["pago","Já pago"]],x.status)}</div>
+    <div class="row2">
+      <div class="field"><label for="g-cat">Categoria</label><select id="g-cat" name="categoria">${catOpts(x.categoria)}</select></div>
+      <div class="field"><label for="g-forn">Fornecedor</label><select id="g-forn" name="fornecedorId">${fopts}</select></div>
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" name="descontar" ${(!g||x.movId)?"checked":""}> Quando pago, descontar do dinheiro guardado pro jantar</label>
+    <div class="field"><label for="g-obs">Observação</label><input id="g-obs" name="obs" maxlength="120" value="${esc(x.obs||"")}" placeholder="opcional"></div>
+    <div class="dlg-actions">${g?`<button class="btn danger" value="delete">Apagar</button>`:""}<div class="right"><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="ok">Salvar</button></div></div>`,
+  async (fd, action)=>{
+    if(action==="delete"){ if(g.movId) await del("movs", g.movId); return await del("gastos", g.id) && (toast("Gasto apagado"), true); }
+    const v=parseMoney(fd.get("valor")); if(!(v>0)){ toast("Digite um valor maior que zero."); return false; }
+    const id=g?g.id:newId("gastos");
+    const data={descricao:(fd.get("descricao")||"").trim(), valor:Math.round(v*100)/100, data:fd.get("data")||null, status:fd.get("status")||"previsto", categoria:fd.get("categoria"), fornecedorId:fd.get("fornecedorId")||null, obs:(fd.get("obs")||"").trim(), movId:x.movId||null, criado:x.criado||Date.now()};
+    if(data.status==="pago" && !data.data) data.data=today();
+    data.movId = await syncGastoMov({...data, descontar:!!fd.get("descontar")}, id);
+    return await put("gastos", id, data) && (toast(data.status==="pago"?"Gasto pago registrado":"Gasto previsto registrado"), true);
+  });
+}
+async function pagarGasto(g){
+  const data={...strip(g), status:"pago", data:today()};
+  data.movId = await syncGastoMov({...data, descontar:true}, g.id);
+  if(await put("gastos", g.id, data)) toast("Marcado como pago e descontado da reserva");
+}
+function fornDialog(f){
+  const x = f || {nome:"", categoria:"Restaurante / buffet", contato:"", link:"", valor:"", status:"orcando", obs:""};
+  openDlg(`<h3>${f?"Editar fornecedor":"Registrar fornecedor"}</h3>
+    <div class="field"><label for="f-nome">Nome</label><input id="f-nome" name="nome" value="${esc(x.nome)}" required maxlength="80" placeholder="ex: Restaurante tal, Confeitaria da Ana"></div>
+    <div class="row2">
+      <div class="field"><label for="f-cat">Categoria</label><select id="f-cat" name="categoria">${catOpts(x.categoria)}</select></div>
+      <div class="field"><label for="f-valor">Valor do orçamento (R$)</label><input id="f-valor" name="valor" inputmode="decimal" placeholder="0,00" value="${esc(moneyInput(x.valor))}"></div>
+      <div class="field"><label for="f-contato">WhatsApp ou telefone</label><input id="f-contato" name="contato" inputmode="tel" maxlength="40" value="${esc(x.contato||"")}"></div>
+      <div class="field"><label for="f-link">Instagram ou site</label><input id="f-link" name="link" maxlength="200" value="${esc(x.link||"")}" placeholder="instagram.com/..."></div>
+    </div>
+    <div class="field"><label>Situação</label>${seg("status",[["orcando","Orçando"],["contratado","Contratado"],["descartado","Descartado"]],x.status)}</div>
+    <div class="field"><label for="f-obs">Anotações</label><textarea id="f-obs" name="obs" rows="3" maxlength="500" placeholder="o que inclui, condições de pagamento, impressões…">${esc(x.obs||"")}</textarea></div>
+    <div class="dlg-actions">${f?`<button class="btn danger" value="delete">Apagar</button>`:""}<div class="right"><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="ok">Salvar</button></div></div>`,
+  async (fd, action)=>{
+    if(action==="delete"){ for(const g of S.gastos.filter(g=>g.fornecedorId===f.id)) await put("gastos", g.id, {...strip(g), fornecedorId:null}); return await del("fornecedores", f.id) && (toast("Fornecedor apagado"), true); }
+    const v=parseMoney(fd.get("valor"));
+    const data={nome:(fd.get("nome")||"").trim(), categoria:fd.get("categoria"), contato:(fd.get("contato")||"").trim(), link:(fd.get("link")||"").trim(), valor:isNaN(v)?null:Math.round(v*100)/100, status:fd.get("status")||"orcando", obs:(fd.get("obs")||"").trim(), criado:x.criado||Date.now()};
+    return await put("fornecedores", f?f.id:newId("fornecedores"), data) && (toast("Fornecedor salvo"), true);
+  });
+}
+document.addEventListener("click", e=>{
+  const j=e.target.closest("[data-jt]"); if(j){ UI.jt=j.dataset.jt; renderJantar(); return; }
+  const fn=e.target.closest("[data-fn]"); if(fn){ UI.fn=fn.dataset.fn; renderFornecedores(); return; }
+  const a=e.target.closest("[data-act]"); if(!a) return; const id=a.dataset.id;
+  if(a.dataset.act==="new-gasto") gastoDialog(null);
+  else if(a.dataset.act==="edit-gasto") gastoDialog(S.gastos.find(g=>g.id===id));
+  else if(a.dataset.act==="pay-gasto"){ const g=S.gastos.find(g=>g.id===id); if(g) pagarGasto(g); }
+  else if(a.dataset.act==="new-forn") fornDialog(null);
+  else if(a.dataset.act==="edit-forn") fornDialog(S.fornecedores.find(f=>f.id===id));
+  else if(a.dataset.act==="gasto-forn"){ const f=S.fornecedores.find(f=>f.id===id); if(f) gastoDialog(null,{fornecedorId:f.id, categoria:f.categoria}); }
+});
 
 function reservaDe(id){ return S.reservas.find(r=>r.item_id===id); }
 async function uploadFoto(file, id){
@@ -659,7 +814,7 @@ document.addEventListener("click", async e=>{
 });
 
 /* ---------- Rotas ---------- */
-const TABS=["resumo","movimentacoes","casa","convidados","ajustes"];
+const TABS=["resumo","movimentacoes","casa","convidados","jantar","fornecedores","ajustes"];
 function route(){
   const h=(location.hash||"").slice(1); const t=TABS.includes(h)?h:"resumo";
   TABS.forEach(k=>{ $("#v-"+k).hidden = k!==t; });
@@ -852,6 +1007,8 @@ const FIX = {
   itens: r=>({...r, estimado:num(r.estimado), pago:num(r.pago)}),
   movs:  r=>({...r, valor:num(r.valor), criado:num(r.criado)}),
   reservas: r=>r,
+  fornecedores: r=>({...r, valor:num(r.valor), criado:num(r.criado)}),
+  gastos: r=>({...r, valor:num(r.valor), criado:num(r.criado)}),
   rsvps: r=>r,
 };
 async function refresh(col){
@@ -868,10 +1025,10 @@ async function refresh(col){
 let channel=null, refreshT={};
 async function start(){
   db = sb; $("#login").hidden = true;
-  await Promise.all(["config","metas","movs","itens","reservas","rsvps"].map(refresh));
+  await Promise.all(["config","metas","movs","itens","reservas","rsvps","fornecedores","gastos"].map(refresh));
   if(!channel){
     channel = sb.channel("financas");
-    ["config","metas","movs","itens","reservas","rsvps"].forEach(t=>channel.on("postgres_changes",{event:"*",schema:"public",table:t},()=>{ clearTimeout(refreshT[t]); refreshT[t]=setTimeout(()=>refresh(t),250); }));
+    ["config","metas","movs","itens","reservas","rsvps","fornecedores","gastos"].forEach(t=>channel.on("postgres_changes",{event:"*",schema:"public",table:t},()=>{ clearTimeout(refreshT[t]); refreshT[t]=setTimeout(()=>refresh(t),250); }));
     channel.subscribe();
   }
 }
@@ -894,7 +1051,7 @@ $("#pw-form").addEventListener("submit", async e=>{
   e.target.reset(); toast("Senha trocada. Avise a Andressa da nova senha.");
 });
 document.addEventListener("click", async e=>{
-  if(e.target.closest("[data-act='logout']")){ await sb.auth.signOut(); if(channel){ sb.removeChannel(channel); channel=null; } S.metas=[];S.movs=[];S.itens=[];S.reservas=[];S.rsvps=[];S.config={}; renderAll(); showLogin(); }
+  if(e.target.closest("[data-act='logout']")){ await sb.auth.signOut(); if(channel){ sb.removeChannel(channel); channel=null; } S.metas=[];S.movs=[];S.itens=[];S.reservas=[];S.fornecedores=[];S.gastos=[];S.rsvps=[];S.config={}; renderAll(); showLogin(); }
 });
 route(); renderAll();
 showLogin();
