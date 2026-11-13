@@ -167,6 +167,36 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
 .login-box{width:min(380px,100%);display:flex;flex-direction:column;gap:14px}
 .login-box .field input{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:11px 12px;font-size:16px}
 .login-err{color:var(--bad);font-size:14px;margin:0;min-height:1.2em}
+.cal-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.cal-h h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0}
+.cal-nav{display:flex;gap:6px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal .dow{font-size:12px;font-weight:700;color:var(--muted);text-align:center;padding-bottom:2px;text-transform:uppercase;letter-spacing:.04em}
+.cal .d{position:relative;min-height:78px;border:1px solid var(--line);border-radius:10px;padding:6px 7px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:transform .08s}
+.cal .d:hover{border-color:var(--accent)}
+.cal .d.out{visibility:hidden}
+.cal .d .n{font-size:13px;font-weight:700;color:var(--muted)}
+.cal .d .amt{font-size:13px;font-weight:700;line-height:1.15;word-break:break-word}
+.cal .d .neg{font-size:11.5px;color:var(--bad);font-weight:600}
+.cal .d.today{outline:2px solid var(--gold);outline-offset:-2px}
+.cal .d.today .n{color:var(--gold)}
+.cal .d.l1{background:color-mix(in srgb,var(--accent) 14%,var(--surface))}
+.cal .d.l2{background:color-mix(in srgb,var(--accent) 32%,var(--surface))}
+.cal .d.l3{background:color-mix(in srgb,var(--accent) 55%,var(--surface))}
+.cal .d.l4{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.cal .d.l3 .n,.cal .d.l4 .n{color:inherit;opacity:.8}
+.cal .d.hit::after{content:"✓";position:absolute;top:5px;right:7px;font-size:12px;font-weight:800;color:inherit;opacity:.85}
+.cal .d.future{opacity:.55}
+.cal-legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:12px;color:var(--muted);font-size:13px}
+.cal-legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:4px;border:1px solid var(--line)}
+@media (max-width:760px){
+  .cal{gap:4px}
+  .cal .d{min-height:58px;padding:4px 5px;border-radius:8px}
+  .cal .d .amt{font-size:11.5px;word-break:normal}
+  .cal .d .rs{display:none}
+  .cal .d .neg{font-size:10px}
+  .cal .d.hit::after{top:3px;right:4px;font-size:10px}
+}
 @media (max-width:760px){
   .tiles{grid-template-columns:1fr 1fr}
   .names{font-size:36px}
@@ -200,6 +230,7 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
   <nav class="tabs" aria-label="Seções">
     <a href="#resumo" data-tab="resumo">Resumo</a>
     <a href="#movimentacoes" data-tab="movimentacoes">Movimentações</a>
+    <a href="#calendario" data-tab="calendario">Calendário</a>
     <a href="#casa" data-tab="casa">Casa nova</a>
     <a href="#convidados" data-tab="convidados">Casamento</a>
     <a href="#jantar" data-tab="jantar">Jantar</a>
@@ -218,6 +249,20 @@ dialog h3{font-family:var(--display);font-weight:400;font-size:26px}
       <button class="btn primary" data-act="new-mov">+ Registrar dinheiro</button>
     </div>
     <div class="metas" id="metas"></div>
+  </section>
+
+  <!-- CALENDÁRIO -->
+  <section class="view" id="v-calendario" hidden>
+    <div class="tiles" id="cal-tiles"></div>
+    <div class="panel">
+      <div class="cal-h">
+        <div class="cal-nav"><button class="btn small ghost" data-cal="-1" aria-label="Mês anterior">‹</button><button class="btn small ghost" data-cal="0">Hoje</button><button class="btn small ghost" data-cal="1" aria-label="Próximo mês">›</button></div>
+        <h2 id="cal-title"></h2>
+        <div class="chips" id="cal-quem"></div>
+      </div>
+      <div class="cal" id="cal-grid"></div>
+      <div class="cal-legend" id="cal-legend"></div>
+    </div>
   </section>
 
   <!-- MOVIMENTAÇÕES -->
@@ -527,6 +572,75 @@ function renderResumo(){
   }).join("") : `<div class="panel empty">Nenhuma meta ainda. <a href="#ajustes">Criar uma meta</a></div>`;
 }
 
+/* ---------- Calendário ---------- */
+UI.calYm = today().slice(0,7); UI.calQuem = "Todos";
+function metaDiaria(){
+  // quanto precisa guardar por dia (soma do "por mês" de todas as metas ÷ dias do mês)
+  let pm=0; for(const m of S.metas){ const s=stats(m); pm += s.porMes||0; }
+  const [y,mo]=UI.calYm.split("-").map(Number); const dim=new Date(y,mo,0).getDate();
+  return pm>0 ? pm/dim : 0;
+}
+function renderCal(){
+  const [y,mo]=UI.calYm.split("-").map(Number);
+  const dim=new Date(y,mo,0).getDate(), first=(new Date(y,mo-1,1).getDay()+6)%7; // semana começa na segunda
+  const hoje=today();
+  const dep={}, out={};
+  for(const x of S.movs){
+    if(!(x.data||"").startsWith(UI.calYm)) continue;
+    if(UI.calQuem!=="Todos" && x.quem!==UI.calQuem) continue;
+    const v=Number(x.valor)||0;
+    if(x.tipo==="deposito") dep[x.data]=(dep[x.data]||0)+v;
+    else if(x.tipo==="retirada") out[x.data]=(out[x.data]||0)+v;
+  }
+  const vals=Object.values(dep); const max=Math.max(0,...vals);
+  const tot=vals.reduce((a,b)=>a+b,0), retTot=Object.values(out).reduce((a,b)=>a+b,0);
+  const diasCom=vals.filter(v=>v>0).length;
+  const ehMesAtual = UI.calYm===hoje.slice(0,7);
+  const diasCorridos = ehMesAtual ? Number(hoje.slice(8,10)) : (UI.calYm<hoje.slice(0,7) ? dim : 0);
+  const media = diasCorridos>0 ? tot/diasCorridos : 0;
+  const md = metaDiaria();
+  const hojeV = dep[hoje]||0;
+  let maiorDia=null; for(const k in dep){ if(!maiorDia||dep[k]>dep[maiorDia]) maiorDia=k; }
+  // sequência de dias seguidos guardando (até hoje)
+  const ymd = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const diasDep = new Set(S.movs.filter(x=>x.tipo==="deposito"&&(UI.calQuem==="Todos"||x.quem===UI.calQuem)).map(x=>x.data));
+  let seq=0; { const d=new Date(); if(!diasDep.has(ymd(d))) d.setDate(d.getDate()-1); while(diasDep.has(ymd(d))){ seq++; d.setDate(d.getDate()-1); } }
+  $("#cal-tiles").innerHTML = `
+    <div class="tile hl"><b>Guardado no mês</b><div class="v num">${brl(tot)}</div><small>${diasCom} ${diasCom===1?"dia":"dias"} com depósito${retTot>0?` · retirou ${brl(retTot)}`:""}</small></div>
+    <div class="tile"><b>${ehMesAtual?"Guardado hoje":"Maior dia"}</b><div class="v num">${ehMesAtual?brl(hojeV):brl(maiorDia?dep[maiorDia]:0)}</div><small>${ehMesAtual? (md>0? (hojeV>=md?"meta do dia batida ✓":"faltam "+brl(md-hojeV)+" pra meta do dia") : "sem meta diária definida") : (maiorDia?fmtData(maiorDia):"—")}</small></div>
+    <div class="tile"><b>Média por dia</b><div class="v num">${brl(media)}</div><small>${md>0?"meta: "+brl(md)+" por dia":"nos dias corridos do mês"}</small></div>
+    <div class="tile"><b>Dias seguidos</b><div class="v num">${seq}</div><small>${seq>0?"guardando sem falhar 🔥":"guarde hoje pra começar"}</small></div>`;
+  $("#cal-title").textContent = fmtMes(UI.calYm).replace(/^./,c=>c.toUpperCase());
+  $("#cal-quem").innerHTML = ["Todos",...PESSOAS].map(p=>`<button class="chip" aria-pressed="${UI.calQuem===p}" data-calquem="${p}">${p}</button>`).join("");
+  let h=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"].map(d=>`<div class="dow">${d}</div>`).join("");
+  for(let i=0;i<first;i++) h+=`<div class="d out"></div>`;
+  for(let d=1; d<=dim; d++){
+    const k=`${UI.calYm}-${String(d).padStart(2,"0")}`, v=dep[k]||0, o=out[k]||0;
+    const r=max>0? v/max : 0; const lv = v<=0?0 : r<=.25?1 : r<=.5?2 : r<=.8?3 : 4;
+    const cls=["d", lv?"l"+lv:"", k===hoje?"today":"", k>hoje?"future":"", md>0&&v>=md?"hit":""].join(" ");
+    h+=`<button class="${cls}" data-calday="${k}" title="${fmtData(k)}${v?" · guardou "+brl(v):""}${o?" · retirou "+brl(o):""}"><span class="n">${d}</span><span>${v?`<span class="amt num"><span class="rs">R$ </span>${Math.round(v).toLocaleString("pt-BR")}</span>`:""}${o?`<span class="neg num">−${Math.round(o).toLocaleString("pt-BR")}</span>`:""}</span></button>`;
+  }
+  $("#cal-grid").innerHTML=h;
+  $("#cal-legend").innerHTML = `<span><i style="background:var(--surface)"></i>Sem depósito</span><span><i style="background:color-mix(in srgb,var(--accent) 32%,var(--surface))"></i>Guardou</span><span><i style="background:var(--accent)"></i>Maior valor do mês</span>${md>0?`<span>✓ bateu a meta do dia (${brl(md)})</span>`:""}<span style="margin-left:auto">Toque num dia pra ver ou registrar</span>`;
+}
+function calDayDialog(k){
+  const rows=S.movs.filter(x=>x.data===k && (UI.calQuem==="Todos"||x.quem===UI.calQuem)).sort((a,b)=>(a.criado||0)-(b.criado||0));
+  const dep=rows.filter(r=>r.tipo==="deposito").reduce((a,r)=>a+(Number(r.valor)||0),0);
+  const list = rows.length ? `<div style="display:flex;flex-direction:column;gap:8px;margin:6px 0 4px">${rows.map(x=>{
+    const t=x.tipo==="deposito"?"Guardou":x.tipo==="retirada"?"Retirou":"Gastou", sign=x.tipo==="deposito"?"+":"−", cls=x.tipo==="deposito"?"in":x.tipo==="retirada"?"out":"spent";
+    return `<div style="display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding-bottom:6px"><span><span class="dot" style="background:${CORES[x.quem]||"var(--muted)"}"></span>${esc(x.quem||"")} · ${t} <small style="color:var(--muted)">${esc(metaNome(x.metaId))}${x.obs?" · "+esc(x.obs):""}</small></span><strong class="num ${cls}">${sign} ${brl(x.valor)}</strong></div>`;}).join("")}</div>`
+    : `<p style="color:var(--muted);margin:6px 0">Nada registrado nesse dia${UI.calQuem!=="Todos"?" por "+esc(UI.calQuem):""}.</p>`;
+  openDlg(`<h3>${fmtData(k)}</h3>${rows.length?`<p style="margin:0 0 4px">Guardado no dia: <strong class="num">${brl(dep)}</strong></p>`:""}${list}
+    <div class="dlg-actions"><div class="right"><button class="btn" value="cancel" formnovalidate>Fechar</button><button class="btn primary" value="ok">+ Guardar neste dia</button></div></div>`,
+    ()=>{ setTimeout(()=>movDialog(null,{data:k, quem:UI.calQuem}),60); });
+}
+document.addEventListener("click", e=>{
+  const c=e.target.closest("[data-cal]");
+  if(c){ const n=Number(c.dataset.cal); if(n===0) UI.calYm=today().slice(0,7); else { let [y,m]=UI.calYm.split("-").map(Number); m+=n; if(m<1){m=12;y--;} if(m>12){m=1;y++;} UI.calYm=`${y}-${String(m).padStart(2,"0")}`; } renderCal(); return; }
+  const q=e.target.closest("[data-calquem]"); if(q){ UI.calQuem=q.dataset.calquem; renderCal(); return; }
+  const d=e.target.closest("[data-calday]"); if(d){ calDayDialog(d.dataset.calday); }
+});
+
 function metaNome(id){ const m=S.metas.find(m=>m.id===id); return m? m.nome : "Sem meta"; }
 
 function renderMovs(){
@@ -607,7 +721,7 @@ function renderNotice(){
 
 function renderAll(){
   S.metas.sort((a,b)=>(a.ordem??99)-(b.ordem??99));
-  renderNotice(); renderEvents(); renderResumo(); renderMovs(); renderCasa(); renderConvidados(); renderJantar(); renderFornecedores(); renderAjustes();
+  renderNotice(); renderEvents(); renderResumo(); renderMovs(); renderCal(); renderCasa(); renderConvidados(); renderJantar(); renderFornecedores(); renderAjustes();
   document.querySelectorAll("[data-act^='new'],#dates-form button").forEach(b=>b.disabled=!canWrite || !db);
 }
 
@@ -814,7 +928,7 @@ document.addEventListener("click", async e=>{
 });
 
 /* ---------- Rotas ---------- */
-const TABS=["resumo","movimentacoes","casa","convidados","jantar","fornecedores","ajustes"];
+const TABS=["resumo","movimentacoes","calendario","casa","convidados","jantar","fornecedores","ajustes"];
 function route(){
   const h=(location.hash||"").slice(1); const t=TABS.includes(h)?h:"resumo";
   TABS.forEach(k=>{ $("#v-"+k).hidden = k!==t; });
@@ -860,7 +974,7 @@ const metaOptions = (sel, extra="") => S.metas.map(m=>`<option value="${esc(m.id
 const seg = (name, opts, sel) => `<div class="seg">${opts.map(([v,l])=>`<label><input type="radio" name="${name}" value="${v}" ${sel===v?"checked":""}>${l}</label>`).join("")}</div>`;
 
 function movDialog(mov, preset={}){
-  const x = mov || {tipo:preset.tipo||"deposito", metaId:preset.meta||(S.metas[0]&&S.metas[0].id), quem:lastQuem(), data:today(), valor:"", obs:""};
+  const x = mov || {tipo:preset.tipo||"deposito", metaId:preset.meta||(S.metas[0]&&S.metas[0].id), quem:preset.quem&&preset.quem!=="Todos"?preset.quem:lastQuem(), data:preset.data||today(), valor:"", obs:""};
   openDlg(`<h3>${mov?"Editar registro":"Registrar dinheiro"}</h3>
     ${seg("tipo",[["deposito","Guardar"],["retirada","Retirar"],["gasto","Gasto"]],x.tipo)}
     <div class="row2">
